@@ -6,7 +6,22 @@ Created on Fri Jul 16 15:07:02 2021
 @author: thor
 """
 
-class ClassName:
-    def __init__(self, *args, **kwargs):
-        pass
+from functions.plotTimeSeries import plotVehicleStates
+from functions.mainLoop import simulate
+
+# from classes.vehicle import *
+
+# Global constants
+sampleTime = 0.1
+N = 100
+
+# Intitial states
+x = 0
+
+# Main program
+def main():
     
+    [simTime, simData] = simulate(N, sampleTime, x)
+    plotVehicleStates(simTime, simData)    
+            
+main()
