@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Kinematic functions and numerical integration
+Kinematic functions and numerical integration.
+
+Reference: T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
+Motion Control. 2nd. Edition, Wiley. 
+URL: www.fossen.biz/wiley
 
 Author:     Thor I. Fossen
 Date:       19 July 2021
-Revisions: 
 """
 
 # R = Rzyx(phi,theta,psi) computes the Euler angle rotation matrix R in SO(3)
@@ -28,7 +31,6 @@ def Rzyx(phi,theta,psi):
         [ -sth,      cth*sphi,                 cth*cphi ] ])
 
     return R
-
 
 # T = Tzyx(phi,theta) computes the Euler angle attitude
 # transformation matrix T using the zyx convention
