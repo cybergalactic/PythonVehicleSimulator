@@ -3,4 +3,4 @@
 
 from .kinematics import Rzyx, Tzyx, attitudeEuler
 from .mainLoop import simulate
-from .plotTimeSeries import plotVehicleStates
+from .plotTimeSeries import plotVehicleStates, plotControls
