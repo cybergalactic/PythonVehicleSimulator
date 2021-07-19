@@ -12,8 +12,11 @@ L = 5.0 m, where
 Input:
   u:       delta_s (rad), where delta_s is the stern plane
 
-Reference : A.J. Healey (1992). Marine Vehicle Dynamics Lecture Notes and 
-            Problem Sets, Naval Postgraduate School (NPS), Monterey, CA.
+References: 
+  A.J. Healey (1992). Marine Vehicle Dynamics Lecture Notes and 
+    Problem Sets, Naval Postgraduate School (NPS), Monterey, CA.
+  T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
+     Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
 Date:       18 July 2021
