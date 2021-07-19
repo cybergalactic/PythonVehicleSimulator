@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Kinematic functions and numerical integration methods
+Kinematic functions and numerical integration
 
 Author:     Thor I. Fossen
 Date:       19 July 2021
@@ -63,7 +63,7 @@ def attitudeEuler(eta,nu,sampleTime):
    v_dot   = Tzyx(eta[3], eta[4]) * nu[3:7]  
    eta_dot = np.vstack([p_dot, v_dot])
 
-   # Forrward Euler 
+   # Forrward Euler integration
    eta = eta + sampleTime * eta_dot
     
    return eta
