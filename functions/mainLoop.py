@@ -9,17 +9,24 @@ Date:       19 July 2021
 
 from .kinematics import attitudeEuler
 import numpy as np
+
+# Function simInfo(vehicle)
+def simInfo(vehicle):
+    print('The Python Vehicle Simulator:')
+    print('Vehicle:         %s, L = %s' % (vehicle.name, vehicle.L))
+    print('Control system:  %s' % (vehicle.controlDescription))
+
         
 # Function simulate(N, sampleTime, eta, nu)
 def simulate(N, sampleTime, vehicle):
     
     DOF = 6                     # degrees of freedom
-    t = 0                       # intial simulation time
+    t = 0                       # initial simulation time
 
     # initialization of table used for simulation data
     simData = np.empty( [0, 2*DOF + vehicle.dimU], float)
     
-    # Intitial states
+    # Initial states
     eta = np.array([ [0, 0, 0, 0, 0, 0] ]).T    
     nu = vehicle.nu
     
