@@ -1,27 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jul 16 15:07:02 2021
-
-@author: thor
+main.py: Main program for the Python Vehicle Simulator, which can be used
+    to simulate and test guidance, navigation and control (GNC) systems.
+    
+Author:     Thor I. Fossen
+Date:       18 July 2021
 """
 
-from functions.plotTimeSeries import plotVehicleStates
-from functions.mainLoop import simulate
+from functions import plotVehicleStates, simulate
+from vehicles import DSRV
 
-# from classes.vehicle import *
+# Choose vehicle from vehicles
+vehicle = DSRV()
 
-# Global constants
-sampleTime = 0.1
-N = 100
-
-# Intitial states
-x = 0
+# Simulation parameters
+sampleTime = 0.1    # sampling time used for numerical integration
+N = 10              # number of samples
 
 # Main program
+print("The Python Vehicle Simulator:")
+print("Simulation time: %.0f seconds" % (N * sampleTime) )
+print("Vehicle:         %s (L = %s)" % (vehicle.name, vehicle.L))
+print("Control system:  Heading autopilot")
+
+# Main simulation loop
 def main():
-    
-    [simTime, simData] = simulate(N, sampleTime, x)
+        
+    [simTime, simData] = simulate(N, sampleTime, vehicle)   
     plotVehicleStates(simTime, simData)    
             
 main()
