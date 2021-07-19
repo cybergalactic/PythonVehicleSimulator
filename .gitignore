@@ -2,6 +2,9 @@ __pycache__
 *.py[cod]
 *$py.class
 
+# demo files (TIF)
+demo*.py
+
 # Distribution / packaging 
 .Python build/ 
 develop-eggs/ 
