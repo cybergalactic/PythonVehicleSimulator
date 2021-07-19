@@ -15,16 +15,15 @@ legendSize = 10                     # legend size
 figSize1 = [30, 20]                 # figure1 size in cm
 figSize2 = [25, 15]                 # figure2 size in cm
 
-
 def R2D(value):                     # radians to degrees
     return value * 180 / math.pi
 
 def cm2inch(value):                 # inch to cm
     return value/2.54
 
-# plotVehicleStates(simTime, simData) plots the 6-DOF vehicle 
-# position/attitude and velocities versus time
-def plotVehicleStates(simTime, simData):
+# plotVehicleStates(simTime, simData, figNo) plots the 6-DOF vehicle 
+# position/attitude and velocities versus time in figure no. figNo
+def plotVehicleStates(simTime, simData, figNo):
            
     # time vector
     t = simTime
@@ -51,8 +50,7 @@ def plotVehicleStates(simTime, simData):
     chi     = psi + beta_c                 # course angle
     
     # plots
-    plt.close('all')
-    plt.figure(1,figsize=(cm2inch(figSize1[0]),cm2inch(figSize1[1])))
+    plt.figure(figNo,figsize=(cm2inch(figSize1[0]),cm2inch(figSize1[1])))
     plt.grid()
 
     plt.subplot(3, 3, 1)
@@ -107,19 +105,17 @@ def plotVehicleStates(simTime, simData):
     plt.legend(['Flight path angle (deg)','Pitch angle (deg)'],fontsize=legendSize)      
     plt.grid()
 
-    # plotControls(simTime, simData) plots the vehicle control inputs 
-    # versus time
-
-def plotControls(simTime, simData, vehicle):
+# plotControls(simTime, simData) plots the vehicle control inputs versus time
+# in figure no. figNo
+def plotControls(simTime, simData, vehicle, figNo):
 
     DOF = 6
     
     # time vector
     t = simTime
     
-    # figure 2 
-    plt.figure(2,figsize=(cm2inch(figSize2[0]),cm2inch(figSize2[1])))
-
+    plt.figure(figNo,figsize=(cm2inch(figSize2[0]),cm2inch(figSize2[1])))
+    
     # col and rows needed to plot vehicle.dimU control inputs
     col = 2
     row = int( math.ceil(vehicle.dimU / col) )
@@ -136,7 +132,5 @@ def plotControls(simTime, simData, vehicle):
         plt.plot(t, u)
         plt.legend([vehicle.controls[i]],fontsize=legendSize) 
         plt.grid()    
-
-    plt.show()
     
     
