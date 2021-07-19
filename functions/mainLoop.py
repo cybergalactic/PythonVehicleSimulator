@@ -13,13 +13,11 @@ import numpy as np
 # Function simulate(N, sampleTime, eta, nu)
 def simulate(N, sampleTime, vehicle):
     
-    dimU = 10                   # maximum number of control inputs
     DOF = 6                     # degrees of freedom
     t = 0                       # intial simulation time
 
     # initialization of table used for simulation data
-    simData = np.empty( [0, 2*DOF + dimU], float)
-    
+    simData = np.empty( [0, 2*DOF + vehicle.dimU], float)
     
     # Intitial states
     eta = np.array([ [0, 0, 0, 0, 0, 0] ]).T    
@@ -30,17 +28,16 @@ def simulate(N, sampleTime, vehicle):
         
         t = i * sampleTime      # simulation time
         
-        # tau = np.array([ [1.0, 0.1, 0, 0.1, 0.2, 0.3] ]).T
-        u = np.zeros([dimU,1])
-        u[0] = 20/57
-        if t > 20:
-            u[0] = 0        
+        if (vehicle.controlMode == 'depthAutopilot'):
+            u = vehicle.depthAutopilot(eta,nu,sampleTime)
+        elif (vehicle.controlMode == 'stepInput'):
+            u = vehicle.stepInput(t)          
         
         # store simulation data in simData
         simData = np.vstack( [ simData, np.vstack([eta, nu, u]).transpose() ])
         
-        #nu = DSRV(eta,nu,u,sampleTime)
-        nu = vehicle.dynamics(eta,nu,sampleTime)
+        # Propagate vehicle and attitude dynamics
+        nu  = vehicle.dynamics(eta,nu,u,sampleTime)
         eta = attitudeEuler(eta,nu,sampleTime)
 
     # store simulation time vector
