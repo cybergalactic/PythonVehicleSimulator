@@ -8,26 +8,30 @@ Author:     Thor I. Fossen
 Date:       18 July 2021
 """
 
-from functions import plotVehicleStates, simulate
+from functions import plotVehicleStates,plotControls,simulate
 from vehicles import DSRV
 
-# Choose vehicle from vehicles
-vehicle = DSRV()
+# choose a vehicle {DSRV, ship}
+# type help(DSRV) etc. to see the control system options 
 
-# Simulation parameters
-sampleTime = 0.1    # sampling time used for numerical integration
-N = 10              # number of samples
+#vehicle = DSRV()
+#vehicle = DSRV('stepInput',15)   
+vehicle = DSRV('depthAutopilot',30.0)   
+
+# Simulation parameters: sample time and number of samples
+sampleTime = 0.1      
+N = 1000            
 
 # Main program
-print("The Python Vehicle Simulator:")
-print("Simulation time: %.0f seconds" % (N * sampleTime) )
-print("Vehicle:         %s (L = %s)" % (vehicle.name, vehicle.L))
-print("Control system:  Heading autopilot")
+print('The Python Vehicle Simulator:')
+print('Vehicle:         %s (L = %s)' % (vehicle.name, vehicle.L))
+print('Control system:  %s' % (vehicle.controlDescription))
 
 # Main simulation loop
 def main():
         
     [simTime, simData] = simulate(N, sampleTime, vehicle)   
     plotVehicleStates(simTime, simData)    
+    plotControls(simTime, simData, vehicle)
             
 main()
