@@ -12,29 +12,32 @@ import numpy as np
 
 # Function simInfo(vehicle)
 def simInfo(vehicle):
-    print('The Python Vehicle Simulator:')
+    print('\nThe Python Vehicle Simulator:')
     print('Vehicle:         %s, L = %s' % (vehicle.name, vehicle.L))
     print('Control system:  %s' % (vehicle.controlDescription))
 
         
-# Function simulate(N, sampleTime, eta, nu)
+# Function simulate(N, sampleTime, vehicle)
 def simulate(N, sampleTime, vehicle):
     
     DOF = 6                     # degrees of freedom
     t = 0                       # initial simulation time
 
-    # initialization of table used for simulation data
+    # initial state vectors
+    eta = np.array([ [0, 0, 0, 0, 0, 0] ]).T    # user editable
+    nu = vehicle.nu                             # defined by vehicle class   
+
+    simInfo(vehicle)            # print simulation info
+
+    # initialization of table used to store the simulation data
     simData = np.empty( [0, 2*DOF + vehicle.dimU], float)
-    
-    # Initial states
-    eta = np.array([ [0, 0, 0, 0, 0, 0] ]).T    
-    nu = vehicle.nu
     
     # simulator for-loop
     for i in range(0,N+1):
         
         t = i * sampleTime      # simulation time
         
+        # vehicle specific control systems
         if (vehicle.controlMode == 'depthAutopilot'):
             u = vehicle.depthAutopilot(eta,nu,sampleTime)
         elif (vehicle.controlMode == 'stepInput'):
