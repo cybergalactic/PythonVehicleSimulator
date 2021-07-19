@@ -3,6 +3,10 @@
 """
 main.py: Main program for the Python Vehicle Simulator, which can be used
     to simulate and test guidance, navigation and control (GNC) systems.
+
+Reference: T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
+Motion Control. 2nd. Edition, Wiley. 
+URL: www.fossen.biz/wiley    
     
 Author:     Thor I. Fossen
 Date:       18 July 2021
