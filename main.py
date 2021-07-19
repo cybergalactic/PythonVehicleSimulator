@@ -11,27 +11,30 @@ URL: www.fossen.biz/wiley
 Author:     Thor I. Fossen
 Date:       18 July 2021
 """
-from functions import plotVehicleStates,plotControls,simulate,simInfo
+import matplotlib.pyplot as plt
+from functions import plotVehicleStates,plotControls,simulate
 from vehicles import DSRV
 
-# Choose a vehicle: {DSRV, ship}
-# type help(DSRV) etc. to see the control system options 
-
-#vehicle = DSRV()
-#vehicle = DSRV('stepInput',15)   
-vehicle = DSRV('depthAutopilot',30.0)   
+#  DSRV('stepInput',15.0)          Stern plan step input
+#  DSRV('depthAutopilot',30.0)     PID depth autopilot
+vehicle1 = DSRV('depthAutopilot',30.0) 
+vehicle2 = DSRV('stepInput',15.0) 
 
 # Simulation parameters: sample time and number of samples
-sampleTime = 0.1      
+sampleTime = 0.1
 N = 1000            
 
-simInfo(vehicle)            # print main simulator info
-
-# Main simulation loop
+# Main simulation loop 
 def main():
-        
-    [simTime, simData] = simulate(N, sampleTime, vehicle)   
-    plotVehicleStates(simTime, simData)    
-    plotControls(simTime, simData, vehicle)
-            
+    
+    [simTime1, simData1] = simulate(N, sampleTime, vehicle1)   
+    plotVehicleStates(simTime1, simData1, 1)                    
+    plotControls(simTime1, simData1, vehicle1, 2)
+
+    [simTime2, simData2] = simulate(N, sampleTime, vehicle2)   
+    plotVehicleStates(simTime2, simData2, 3)    
+    plotControls(simTime2, simData2, vehicle2, 4)
+
+    plt.show()
+
 main()
