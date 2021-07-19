@@ -7,11 +7,10 @@ main.py: Main program for the Python Vehicle Simulator, which can be used
 Author:     Thor I. Fossen
 Date:       18 July 2021
 """
-
-from functions import plotVehicleStates,plotControls,simulate
+from functions import plotVehicleStates,plotControls,simulate,simInfo
 from vehicles import DSRV
 
-# choose a vehicle {DSRV, ship}
+# Choose a vehicle: {DSRV, ship}
 # type help(DSRV) etc. to see the control system options 
 
 #vehicle = DSRV()
@@ -22,10 +21,7 @@ vehicle = DSRV('depthAutopilot',30.0)
 sampleTime = 0.1      
 N = 1000            
 
-# Main program
-print('The Python Vehicle Simulator:')
-print('Vehicle:         %s (L = %s)' % (vehicle.name, vehicle.L))
-print('Control system:  %s' % (vehicle.controlDescription))
+simInfo(vehicle)            # print main simulator info
 
 # Main simulation loop
 def main():
