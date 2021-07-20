@@ -84,7 +84,7 @@ def plotVehicleStates(simTime, simData, figNo):
     plt.plot(t, beta_c, t, psi)    
     plt.legend(['Crab angle (deg)','Yaw angle (deg)'],fontsize=legendSize)
     plt.grid()
-
+    
     plt.subplot(3, 3, 7)
     plt.plot(t, u, t, v, t, w)  
     plt.xlabel('Time (s)', fontsize=12)     
