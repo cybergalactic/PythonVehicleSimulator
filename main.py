@@ -13,7 +13,7 @@ Date:       18 July 2021
 """
 import matplotlib.pyplot as plt
 from functions import plotVehicleStates,plotControls,simulate
-from vehicles import DSRV
+from vehicles import DSRV,otter
 
 #  DSRV('stepInput',15.0)          Stern plan step input
 #  DSRV('depthAutopilot',30.0)     PID depth autopilot
