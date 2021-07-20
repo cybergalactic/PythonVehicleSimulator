@@ -5,3 +5,4 @@ from .kinematics import Rzyx, Tzyx, attitudeEuler
 from .mainLoop import simulate,simInfo
 from .plotTimeSeries import plotVehicleStates, plotControls
 from .guidance import refModel3
+from .control import PIDpolePlacement
