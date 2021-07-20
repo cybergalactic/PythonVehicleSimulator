@@ -23,6 +23,7 @@ Date:       18 July 2021
 """
 import numpy as np
 import math
+from functions.control import PIDpolePlacement
 
 # Class Vehicle
 class DSRV:
@@ -78,19 +79,16 @@ class DSRV:
         self.Zdelta = 0.027695
         
         # Depth autopilot
-        self.z_int = 0           # integral state
-    
-        wn = 1                   # PID pole placement
-        zeta = 1
-        
-        self.Kp = self.m11 * wn**2
-        self.Kd = self.m11 * 2 * wn * zeta
-        self.Ki = (wn/10) * self.Kp
+        self.z_int = 0           # integral state   
+        self.wn = 1              # PID pole placement
+        self.zeta = 1
         
         # Reference model
-        self.wn_d = wn / 5
-        self.z_d = 0
+        self.z_d = 0            # position, velocity and acc. states
         self.w_d = 0
+        self.a_d = 0
+        self.wn_d = self.wn / 5
+        self.zeta_d = 1        
         
     def __del__(self):
         pass
@@ -106,7 +104,7 @@ class DSRV:
         # Speed
         U = math.sqrt( self.U0**2 + (self.W0 + w)**2 )
         
-        # Speed dependet pitch moment
+        # Speed dependent pitch moment
         Mtheta = -0.156276 / U**2
         
         # Rudder saturation
@@ -127,7 +125,6 @@ class DSRV:
         
         # Cruise speed (constant)
         self.nu[0] = self.U0;
-        self.nu[2] = self.W0;
         
         return self.nu
     
@@ -149,18 +146,27 @@ class DSRV:
         
         self.u = np.zeros([self.dimU,1])
         
-        z = eta[2]  
-        w = nu[2]
-        z_err = z - self.z_d 
-        w_err = w - self.w_d 
-        
-        self.u[0] = -self.Kp * z_err - self.Kd * w_err - self.Ki * self.z_int
-                    
-        self.z_d = self.z_d + sampleTime * self.w_d
-        self.w_d = self.w_d + sampleTime * \
-           ( self.wn_d**2 *( self.ref - self.z_d ) - 2 * self.wn_d * self.w_d )
-        
-        self.z_int = self.z_int + sampleTime * z_err
+        w_max = 1                   # maximum heave velocity
+
+        z = eta[2]                  # heave position
+        w = nu[2]                   # heave velocity
+        e_z = z - self.z_d          # heave position tracking error
+        e_w = w - self.w_d          # heave velocity tracking error
+        r = self.ref                # heave setpoint
+    
+        wn = self.wn                # PID natural frequency
+        zeta = self.zeta            # PID natural relative damping factor
+        wn_d = self.wn_d            # reference model natural frequency
+        zeta_d = self.zeta_d        # reference model relative damping factor
+
+        m = self.m11                # mass in heave including added mass
+        d = 0
+        k = 0
+
+        # PID controller using a 3rd-order reference model
+        [self.u, self.z_int, self.z_d, self.w_d, self.a_d] = \
+            PIDpolePlacement( e_z, e_w, self.z_int,self.z_d, self.w_d, self.a_d, \
+            m, d, k, wn_d, zeta_d, wn, zeta, r, w_max, sampleTime )
 
         return self.u    
         
