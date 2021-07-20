@@ -57,7 +57,7 @@ class DSRV:
         
         self.U0 = 4.11      # Cruise speed: 4.11 m/s = 8 knots 
         self.W0 = 0
-        self.nu  = np.array([ [self.U0, 0, self.W0, 0, 0, 0] ]).T
+        self.nu  = np.array([ self.U0, 0, self.W0, 0, 0, 0] )
         
         # Non-dimensional mass matrix 
         Iy  =  0.001925
@@ -119,7 +119,7 @@ class DSRV:
         M = self.Mq * q + self.Mw * w + Mtheta * theta + self.Mdelta * delta
             
         # State derivatives (with dimension)
-        nu_dot = np.zeros((6, 1))
+        nu_dot = np.zeros(6)
         nu_dot[2] = (  self.m22 * Z - self.m12 * M) / self.detM
         nu_dot[4] = ( -self.m21 * Z + self.m11 * M) / self.detM             
         
@@ -136,7 +136,7 @@ class DSRV:
         """
         delta_c = stepInput(t) generates stern plane step inputs.
         """          
-        self.u = np.zeros([self.dimU,1])
+        self.u = np.zeros(self.dimU)
         delta_c = (math.pi/180) * self.ref
         
         self.u[0] = delta_c       
@@ -152,7 +152,7 @@ class DSRV:
         delta_c = depthAutopilot(eta,nu,sampleTime) is a PID controller for 
         automatic depth control based on pole placement.
         """          
-        self.u = np.zeros([self.dimU,1])
+        self.u = np.zeros(self.dimU)
         
         w_max = 1                   # maximum heave velocity
 
@@ -172,10 +172,12 @@ class DSRV:
         k = 0
 
         # PID feedback controller with 3rd-order reference model
-        [self.u, self.z_int, self.z_d, self.w_d, self.a_d] = \
+        [delta_c, self.z_int, self.z_d, self.w_d, self.a_d] = \
             PIDpolePlacement( e_z, e_w, self.z_int,self.z_d, self.w_d, self.a_d, \
             m, d, k, wn_d, zeta_d, wn, zeta, r, w_max, sampleTime )
     
+        self.u[0] = delta_c   
+         
         return self.u    
         
 
