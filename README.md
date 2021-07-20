@@ -18,10 +18,17 @@ is used to define multiple vehicle objects for real-time simulation. The python 
         
 In order to run the main program main.py the following modules must be installed:
 
-    numpy       https://numpy.org/install/
-    matplotlib  https://matplotlib.org/stable/users/installing.html
+numpy           https://numpy.org/install/
+matplotlib      https://matplotlib.org/stable/users/installing.html
 
-Author: Thor I. Fossen
+For more information about mathematical modeling of marine craft and methods for guidance, navigation and control, please consult:
+
+T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control. 2nd. Edition, Wiley. 
+URL: www.fossen.biz/wiley     
+
+
+
+
 
 
 
