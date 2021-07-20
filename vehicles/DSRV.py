@@ -94,7 +94,10 @@ class DSRV:
         pass
         
     def dynamics(self,eta,nu,u,sampleTime):
-        
+        """
+        nu = dynamics(eta,nu,u,sampleTime) integrates the DSRV
+        equations of motion.
+        """       
         # states and inputs: eta[k], nu[k], u[k]
         delta = u[0]
         w     = nu[2]
@@ -130,7 +133,9 @@ class DSRV:
     
     
     def stepInput(self,t):
-       
+        """
+        delta_c = stepInput(t) generates stern plane step inputs.
+        """          
         self.u = np.zeros([self.dimU,1])
         delta_c = (math.pi/180) * self.ref
         
@@ -143,7 +148,10 @@ class DSRV:
         return self.u                
 
     def depthAutopilot(self,eta,nu,sampleTime):
-        
+        """
+        delta_c = depthAutopilot(eta,nu,sampleTime) is a PID controller for 
+        automatic depth control based on pole placement.
+        """          
         self.u = np.zeros([self.dimU,1])
         
         w_max = 1                   # maximum heave velocity
@@ -160,14 +168,14 @@ class DSRV:
         zeta_d = self.zeta_d        # reference model relative damping factor
 
         m = self.m11                # mass in heave including added mass
-        d = 0
+        d = 0                 
         k = 0
 
-        # PID controller using a 3rd-order reference model
+        # PID feedback controller with 3rd-order reference model
         [self.u, self.z_int, self.z_d, self.w_d, self.a_d] = \
             PIDpolePlacement( e_z, e_w, self.z_int,self.z_d, self.w_d, self.a_d, \
             m, d, k, wn_d, zeta_d, wn, zeta, r, w_max, sampleTime )
-
+    
         return self.u    
         
 
