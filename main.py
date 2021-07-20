@@ -17,8 +17,8 @@ from vehicles import DSRV
 
 #  DSRV('stepInput',15.0)          Stern plan step input
 #  DSRV('depthAutopilot',30.0)     PID depth autopilot
-vehicle1 = DSRV('depthAutopilot',30.0) 
-vehicle2 = DSRV('stepInput',15.0) 
+vehicle1 = DSRV('depthAutopilot',60.0) 
+vehicle2 = DSRV('stepInput',25.0) 
 
 # Simulation parameters: sample time and number of samples
 sampleTime = 0.1
@@ -32,8 +32,8 @@ def main():
     plotControls(simTime1, simData1, vehicle1, 2)
 
     [simTime2, simData2] = simulate(N, sampleTime, vehicle2)   
-    plotVehicleStates(simTime2, simData2, 3)    
-    plotControls(simTime2, simData2, vehicle2, 4)
+    #plotVehicleStates(simTime2, simData2, 3)    
+    #plotControls(simTime2, simData2, vehicle2, 4)
 
     plt.show()
 
