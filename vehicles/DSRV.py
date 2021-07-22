@@ -3,7 +3,7 @@
 """
 DSRV.py:  
  
-DSRV(eta,nu,u,sampleTime) returns returns nu[k+1] of the state vector 
+DSRV(eta,nu,u_control,sampleTime) returns returns nu[k+1] of the state vector 
 nu[k]  = [ 0 0 w 0 q 0]' for a deep submergence rescue vehicle (DSRV) 
 L = 5.0 m, where
  w:        heave velocity (m/s)
@@ -32,16 +32,13 @@ class DSRV:
     DSRV('deptAutopilot',z_d)   depth autopilot, desired depth (m)
     DSRV('stepInput',delta_c)   step input, stern plane (deg)
     """        
-    def __init__(self, controlSystem = 'depthAutopilot', r = 10):
+    def __init__(self, controlSystem = 'stepInput', r = 0):
                             
         if (controlSystem == 'depthAutopilot'):
             self.controlDescription = 'Depth autopilot, setpoint z_d = ' + str(r) + ' (m)'
-            
-        elif (controlSystem == 'stepInput'):
-            self.controlDescription = 'Step input, delta_s = ' + str(r) + ' (deg)'
- 
+             
         else:  
-            self.controlDescription = "ERROR, legal options {depthAutopilot, stepInput}" 
+            self.controlDescription = "Step input for delta_s" 
             controlSystem = 'stepInput'  
       
         self.ref = r
@@ -57,7 +54,8 @@ class DSRV:
         
         self.U0 = 4.11      # Cruise speed: 4.11 m/s = 8 knots 
         self.W0 = 0
-        self.nu  = np.array([ self.U0, 0, self.W0, 0, 0, 0] )
+        self.nu  = np.array([ self.U0, 0, self.W0, 0, 0, 0], float )
+        self.delta  = 0.0      # stern plane state
         
         # Non-dimensional mass matrix 
         Iy  =  0.001925
@@ -93,13 +91,13 @@ class DSRV:
     def __del__(self):
         pass
         
-    def dynamics(self,eta,nu,u,sampleTime):
+    def dynamics(self,eta,nu,u_control,sampleTime):
         """
         nu = dynamics(eta,nu,u,sampleTime) integrates the DSRV
         equations of motion.
         """       
         # states and inputs: eta[k], nu[k], u[k]
-        delta = u[0]
+        delta_c = u_control[0]
         w     = nu[2]
         q     = nu[4] 
         theta = eta[4]
@@ -111,49 +109,50 @@ class DSRV:
         Mtheta = -0.156276 / U**2
         
         # Rudder saturation
-        if ( abs(delta) >= self.deltaMax * math.pi/180 ):
-            delta = np.sign(delta) * self.deltaMax * math.pi/180;
+        if ( abs(delta_c) >= self.deltaMax * math.pi/180 ):
+            delta_c = np.sign(delta_c) * self.deltaMax * math.pi/180
 
         # Forces and moments        
-        Z = self.Zq * q + self.Zw * w + self.Zdelta * delta
-        M = self.Mq * q + self.Mw * w + Mtheta * theta + self.Mdelta * delta
+        Z = self.Zq * q + self.Zw * w + self.Zdelta * self.delta
+        M = self.Mq * q + self.Mw * w + Mtheta * theta + self.Mdelta * self.delta
             
         # State derivatives (with dimension)
         nu_dot = np.zeros(6)
         nu_dot[2] = (  self.m22 * Z - self.m12 * M) / self.detM
-        nu_dot[4] = ( -self.m21 * Z + self.m11 * M) / self.detM             
+        nu_dot[4] = ( -self.m21 * Z + self.m11 * M) / self.detM      
+        
+        # stern plane dynamics
+        delta_dot = (delta_c - self.delta) / 1.0    # rudder dynamics
         
         # Forward Euler integration
-        self.nu  = nu + sampleTime * nu_dot
+        nu  = nu + sampleTime * nu_dot
+        self.delta = self.delta + sampleTime * delta_dot
         
         # Cruise speed (constant)
-        self.nu[0] = self.U0;
+        nu[0] = self.U0
         
-        return self.nu
+        return nu
     
     
     def stepInput(self,t):
         """
         delta_c = stepInput(t) generates stern plane step inputs.
-        """          
-        self.u = np.zeros(self.dimU)
-        delta_c = (math.pi/180) * self.ref
-        
-        self.u[0] = delta_c       
+        """    
+        delta_c = 20 * (math.pi/180)       
         if t > 30:
-            self.u[0] = -delta_c 
+            delta_c = 10 * (math.pi/180) 
         if t > 50:
-            self.u[0] = 0
+            delta_c = 0
             
-        return self.u                
+        u_control = np.array([delta_c],float)   
+         
+        return u_control             
 
     def depthAutopilot(self,eta,nu,sampleTime):
         """
         delta_c = depthAutopilot(eta,nu,sampleTime) is a PID controller for 
         automatic depth control based on pole placement.
-        """          
-        self.u = np.zeros(self.dimU)
-        
+        """                  
         w_max = 1                   # maximum heave velocity
 
         z = eta[2]                  # heave position
@@ -176,9 +175,9 @@ class DSRV:
             PIDpolePlacement( e_z, e_w, self.z_int,self.z_d, self.w_d, self.a_d, \
             m, d, k, wn_d, zeta_d, wn, zeta, r, w_max, sampleTime )
     
-        self.u[0] = delta_c   
+        u_control = np.array([delta_c],float)   
          
-        return self.u    
+        return u_control   
         
 
     
