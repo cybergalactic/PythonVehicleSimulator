@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Kinematic functions and numerical integration.
+Kinematic and kinetics. 
 
 Reference: T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
 Motion Control. 2nd. Edition, Wiley. 
@@ -25,7 +25,7 @@ def Smtrx(a):
 
     return S
 
-# H = HMmtrx(r) computes the 6x6 system transformation matrix
+# H = Hmtrx(r) computes the 6x6 system transformation matrix
 # H = [eye(3)     S'
 #      zeros(3,3) eye(3) ]       Property: inv(H(r)) = H(-r)
 #
@@ -34,7 +34,7 @@ def Smtrx(a):
 # force satisfy: eta_CO = H(r_g)' * eta_CG and tau_CO = H(r_g)' * tau_CG 
 def Hmtrx(r):
 
-    H = np.identity(6)
+    H = np.identity(6,float)
     H[0:3, 3:6] = Smtrx(r).T
 
     return H
@@ -83,12 +83,94 @@ def Tzyx(phi,theta):
 def attitudeEuler(eta,nu,sampleTime):
    
    p_dot   = np.matmul( Rzyx(eta[3], eta[4], eta[5]), nu[0:3] )
-   v_dot   = np.matmul( Tzyx(eta[3], eta[4]), nu[3:7] )
-   eta_dot = np.hstack([p_dot, v_dot])
+   v_dot   = np.matmul( Tzyx(eta[3], eta[4]), nu[3:6] )
 
    # Forward Euler integration
-   eta = eta + sampleTime * eta_dot
+   eta[0:3] = eta[0:3] + sampleTime * p_dot
+   eta[3:6] = eta[3:6] + sampleTime * v_dot
 
    return eta
+
+# C = m2c(M, nu)
+def m2c(M, nu):
+
+    M = 0.5 * (M + M.T)     # symmetrization of the inertia matrix
+
+    if (len(nu) == 6):      #  6-DOF model
     
+        M11 = M[0:3,0:3]
+        M12 = M[0:3,3:6] 
+        M21 = M12.T
+        M22 = M[3:6,3:6] 
     
+        nu1 = nu[0:3]
+        nu2 = nu[3:6]
+        dt_dnu1 = np.matmul(M11,nu1) + np.matmul(M12,nu2)
+        dt_dnu2 = np.matmul(M21,nu1) + np.matmul(M22,nu2)
+
+        #C  = [  zeros(3,3)      -Smtrx(dt_dnu1)
+        #      -Smtrx(dt_dnu1)  -Smtrx(dt_dnu2) ]
+        C = np.zeros( (6,6) )    
+        C[0:3,3:6] = -Smtrx(dt_dnu1)
+        C[3:6,0:3] = -Smtrx(dt_dnu1)
+        C[3:6,3:6] = -Smtrx(dt_dnu2)
+            
+    else:   # 3-DOF model (surge, sway and yaw)
+        #C = [ 0             0            -M(2,2)*nu(2)-M(2,3)*nu(3)
+        #      0             0             M(1,1)*nu(1)
+        #      M(2,2)*nu(2)+M(2,3)*nu(3)  -M(1,1)*nu(1)          0  ]    
+        C = np.zeros( (3,3) ) 
+        C[0,2] = -M[1,1] * nu[1] - M[1,2] * nu[2]
+        C[1,2] =  M[0,0] * nu[0] 
+        C[2,0] = -C[0,2]       
+        C[2,1] = -C[1,2]
+        
+    return C
+
+# CY_2D = Hoerner(B,T)
+# Hoerner computes the 2D Hoerner cross-flow form coeff. as a function of beam 
+# B and draft T.The data is digizied and interpolation is used to compute others 
+#  data point than those in the table
+def Hoerner(B,T):
+    
+    # DATA = [B/2T  C_D]
+    DATA1 = np.array([
+        0.0109,0.1766,0.3530,0.4519,0.4728,0.4929,0.4933,0.5585,0.6464,0.8336,
+        0.9880,1.3081,1.6392,1.8600,2.3129,2.6000,3.0088,3.4508, 3.7379,4.0031 
+        ])
+    DATA2 = np.array([
+        1.9661,1.9657,1.8976,1.7872,1.5837,1.2786,1.2108,1.0836,0.9986,0.8796,
+        0.8284,0.7599,0.6914,0.6571,0.6307,0.5962,0.5868,0.5859,0.5599,0.5593 
+        ])
+
+    CY_2D = np.interp( B / (2 * T), DATA1, DATA2 )
+        
+    return CY_2D
+
+# tau_crossflow = crossFlowDrag(L,B,T,nu_r) computes the cross-flow drag 
+# integrals for a marine craft using strip theory. Application:
+#
+#  M d/dt nu_r + C(nu_r)*nu_r + D*nu_r + g(eta) = tau + tau_crossflow
+def crossFlowDrag(L,B,T,nu_r):
+
+    rho = 1026               # density of water
+    n = 20                   # number of strips
+
+    dx = L/20             
+    Cd_2D = Hoerner(B,T)    # 2D drag coefficient based on Hoerner's curve
+
+    Yh = 0
+    Nh = 0
+    xL = -L/2
+    
+    for i in range(0,n+1):
+        v_r = nu_r[1]             # relative sway velocity
+        r = nu_r[5]               # yaw rate
+        Ucf = abs(v_r + xL * r) * (v_r + xL * r)
+        Yh = Yh - 0.5 * rho * T * Cd_2D * Ucf * dx         # sway force
+        Nh = Nh - 0.5 * rho * T * Cd_2D * xL * Ucf * dx    # yaw moment
+        xL += dx
+        
+    tau_crossflow = np.array([0, Yh, 0, 0, 0, Nh],float)
+
+    return tau_crossflow
