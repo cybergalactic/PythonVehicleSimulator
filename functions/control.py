@@ -16,14 +16,14 @@ import numpy as np
 import math
 from functions.guidance import refModel3
 
-#  PIDpolePlacement(_x,e_v,e_int,x_d,v_d,a_d,m,d,k,wn_d,zeta_d,wn,zeta,r,v_max,sampleTime)
+#  u = PIDpolePlacement(_x,e_v,e_int,x_d,v_d,a_d,m,d,k,wn_d,zeta_d,wn,zeta,r,v_max,sampleTime)
 def PIDpolePlacement(e_x,e_v,e_int,x_d,v_d,a_d,m,d,k,wn_d,zeta_d,wn,zeta,r,v_max,sampleTime):
 
         # PID gains based on pole placement
         Kp = m * wn**2 - k
         Kd = m * 2 * zeta * wn - d
         Ki = (wn/10) * Kp
-         
+        
         # PID control law
         u = -Kp * e_x - Kd * e_v - Ki * e_int
 
