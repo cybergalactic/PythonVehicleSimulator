@@ -124,8 +124,8 @@ def plotControls(simTime, simData, vehicle, figNo):
     for i in range(0,vehicle.dimU):
         
         u = simData[:,2*DOF+i]                  # control input
-
-        if vehicle.controls[i].find('deg'):     # convert angles to deg
+        
+        if vehicle.controls[i].find("deg") != -1:  # convert angles to deg
             u = R2D(u)
 
         plt.subplot(row, col, i+1)
