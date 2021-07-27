@@ -1,17 +1,28 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 DSRV.py:  
- 
-DSRV(eta,nu,u_control,sampleTime) returns returns nu[k+1] of the state vector 
-nu[k]  = [ 0 0 w 0 q 0]' for a deep submergence rescue vehicle (DSRV) 
-L = 5.0 m, where
- w:        heave velocity (m/s)
- q:        pitch velocity (rad/s)
 
-Input:
-  u:       delta_s (rad), where delta_s is the stern plane
+    Class for the Naval Postgraduate School depp submergence rescue vehicle
+    (DSRV). The length of the vehicle is L = 5.0 m and the state vector is 
+    nu[k]  = [ 0 0 w 0 q 0]' where w is the heave velocity (m/s) and q is the
+    pitch rate (rad/s).  The constructors are:
+        
+    DSRV('deptAutopilot',z_d)   depth autopilot, desired depth (m)
+    DSRV('stepInput',delta_c)   step input, stern plane (deg)   
 
+    Methods:   
+        
+   nu = dynamics(eta,nu,u,sampleTime)     
+       returns nu[k+1] using Euler's method. The control input u = delta_s 
+       in rad is the stern plane.
+
+   u = headingAutopilot(eta,nu,sampleTime) is a PID controller for 
+       automatic heading control based on pole placement and reference 
+       feedforward.
+       
+   u = stepInput(t) generates stern plane step inputs.   
+       
+---
 References: 
   A.J. Healey (1992). Marine Vehicle Dynamics Lecture Notes and 
     Problem Sets, Naval Postgraduate School (NPS), Monterey, CA.
@@ -19,7 +30,7 @@ References:
      Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
-Date:       18 July 2021
+Date:       25 July 2021
 """
 import numpy as np
 import math
@@ -34,6 +45,13 @@ class DSRV:
     """        
     def __init__(self, controlSystem = 'stepInput', r = 0):
                             
+     # TO BE ADDED IN PYTHON 3.10
+       # match controlSystem: 
+       #     case 'headingAutopilot':
+       #         self.controlDescription = 'Step input, n1 = n2 = ' + str(r) + ' (rad/s)'
+       #     case _:
+       #         self.controlDescription = "ERROR, legal options {headingAutopilot, stepInput}" 
+        
         if (controlSystem == 'depthAutopilot'):
             self.controlDescription = 'Depth autopilot, setpoint z_d = ' + str(r) + ' (m)'
              
@@ -138,7 +156,7 @@ class DSRV:
         """
         delta_c = stepInput(t) generates stern plane step inputs.
         """    
-        delta_c = 20 * (math.pi/180)       
+        delta_c = 20 * (math.pi/180)    
         if t > 30:
             delta_c = 10 * (math.pi/180) 
         if t > 50:
