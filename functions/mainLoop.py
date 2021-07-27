@@ -6,7 +6,7 @@ Author:     Thor I. Fossen
 Date:       25 July 2021
 """
 
-from .kinematics import attitudeEuler
+from .gnc import attitudeEuler
 import numpy as np
 
 # Function simInfo(vehicle)
