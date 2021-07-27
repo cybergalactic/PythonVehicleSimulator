@@ -1,0 +1,166 @@
+# -*- coding: utf-8 -*-
+"""
+shipClarke83.py:  
+
+   Class for a generic ship parametrized using the main dimensions L, B, and 
+   T. The ship model is based on the linear maneuvering coefficients by 
+   Clarke (1983.)  
+       
+   shipClarke83()                           
+       Step input, rudder aangle     
+   shipClarke83('headingAutopilot',L,B,T,psi_d,L,B,T,Cb,V_current,beta_c,tau_X)                 
+       Heading autopilot desired yaw angle (deg)
+
+   Methods:
+        
+   nu = dynamics(eta,nu,u,sampleTime )returns nu[k+1] using Euler's method. 
+   The control input u = delta_r (rad) is for the ship rudder.
+
+   u = headingAutopilot(eta,nu,sampleTime) 
+       PID controller for automatic depth control based on pole placement and 
+       reference feedforward.
+       
+   u = stepInput(t) generates rudder step inputs.   
+       
+---
+References: 
+  D. Clarke, P. Gedling and G. Hine. (1983). The application of manoeuvring 
+      criteria in hull design using linear thory. Trans. R. lnsm nav. Archit.
+      125, 45-68.
+  T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
+     Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
+
+Author:     Thor I. Fossen
+Date:       25 July 2021
+"""
+import numpy as np
+import math
+from functions.control import PIDpolePlacement
+from functions.models import clarke83
+
+# Class Vehicle
+class shipClarke83:
+    """
+    shipClarke83()                                
+        Step input, rudder angle      
+    shipClarke83('headingAutopilot',L,B,T,psi_d,L,B,T,Cb,V_current,beta_c,tau_X)                
+        Heading autopilot desired yaw angle (deg)
+    """        
+    def __init__(self, controlSystem = 'stepInput', r = 0, L = 50, B = 7, 
+                 T = 5, Cb = 0.7, V_current = 0, beta_current = 0,tau_X = 1e5):
+                            
+        if (controlSystem == 'headingAutopilot'):
+            self.controlDescription = 'Heading autopilot, setpoint psi_d = ' \
+                + str(r) + ' (deg)' 
+             
+        else:  
+            self.controlDescription = "Step input for delta_r" 
+            controlSystem = 'stepInput'  
+            
+        self.ref = r
+        self.V_c = V_current
+        self.beta_c = beta_current        
+        self.controlMode = controlSystem
+                    
+        # Initialize the ship model
+        self.name = "Clarke (1983) linear ship model"
+        self.L = L              # length (m)
+        self.B = B              # beam (m)
+        self.T = T              # Draft (m)             
+        self.Cb = Cb            # block coefficient
+        self.rho = 1025         # density of water (kg/m^3)
+        self.Lambda = 0.7       # rudder aspect ratio:  Lambda = b**2 / AR         
+        self.tau_X = tau_X      # surge force (N), pilot input
+        self.deltaMax = 30      # max rudder angle (deg)   
+        self.T_delta = 5;       # rudder time constants (s)
+        self.nu  = np.array([1, 0, 0, 0, 0, 0], float )    # velocity vector    
+        self.delta  = 0.0       # rudder angle state (rad)
+        self.controls = ['Rudder (deg)']
+        self.dimU = len(self.controls)
+    
+        
+    def dynamics(self,eta,nu,u_control,sampleTime):
+        """
+        nu = dynamics(eta,nu,u,sampleTime) integrates the ship equations of
+        motion using Euler's method.
+        """   
+        
+        # Current velocities
+        u_c = self.V_c * math.cos(self.beta_c - eta[5]) # current surge velocity
+        v_c = self.V_c * math.sin(self.beta_c - eta[5]) # current sway velocity        
+ 
+        nu_c = np.array([u_c,v_c,0,0,0,0],float)        # current velocity vector
+        nu_r = nu - nu_c                                # relative velocity vector
+        
+        U_r = math.sqrt( nu_r[0]**2 + nu_r[1]**2 )      # relative speed
+        
+        # Rudder command
+        delta_c = u_control[0]  
+        
+        # Rudder forces and moment (Fossen 2021, Chapter 9.5.1)
+        b = 0.7 * self.T                                   # rudder height
+        AR = b**2 / self.Lambda                            # aspect ratio: Lamdba = b**2/AR 
+        CN = 6.13 * self.Lambda  / ( self.Lambda  + 2.25 ) # normal coefficient
+        t_R = 1 - 0.28 * self.Cb - 0.55
+        a_H = 0.4
+        x_R = -0.45 * self.L
+        x_H = -1.0 * self.L
+
+        Xdd = -0.5 * ( 1 - t_R ) * self.rho * U_r**2 * AR * CN
+        Yd = -0.25 * ( 1 + a_H ) * self.rho * U_r**2 * AR * CN 
+        Nd = -0.25 * ( x_R + a_H * x_H ) * self.rho * U_r**2 * AR * CN 
+        
+        # Control forces and moment
+        delta_R = -self.delta               # physical rudder angle (rad)
+        T = self.tau_X                      # thrust (N)
+        t_deduction = 0.1                   # thrust deduction number
+        tau1 =  ( 1 -  t_deduction ) * T - Xdd * math.sin( delta_R )**2 
+        tau2 = -Yd * math.sin( 2 * delta_R ) 
+        tau6 = -Nd * math.sin( 2 * delta_R ) 
+        tau  = np.array([tau1,tau2,tau6],float) 
+        
+        # Linear maneuvering model
+        T_surge = self.L        # approx. time constant in surge (s)
+        xg = 0                  # approx. x-coordinate, CG (m)      
+        if self.L > 100:
+            R66 = 0.27 * self.L  # approx. radius of gyration in yaw (m)
+        else:
+            R66 = 0.25 * self.L          
+        
+        # 3-DOF ship model
+        [M,N] = clarke83(U_r,self.L, self.B, self.T,self.Cb,R66,xg,T_surge)
+        Minv = np.linalg.inv(M)
+        nu3 = np.array( [ nu_r[0],nu_r[1],nu_r[2] ])         
+        nu3_dot = np.matmul( Minv, tau - np.matmul(N,nu3) ) 
+        
+        # 6-DOF ship model
+        nu_dot = np.array( [ nu3_dot[0],nu3_dot[1],0,0,0,nu3_dot[2] ])  
+
+        # Rudder angle saturation
+        if ( abs(delta_c) >= self.deltaMax * math.pi/180 ):
+            delta_c = np.sign(delta_c) * self.deltaMax * math.pi/180
+        
+        # Rudder dynamics
+        delta_dot = (delta_c - self.delta) / self.T_delta    
+        
+        # Forward Euler integration
+        nu  = nu + sampleTime * nu_dot
+        self.delta = self.delta + sampleTime * delta_dot
+        
+        return nu        
+        
+        
+    def stepInput(self,t):
+        """
+        delta_r = stepInput(t) generates rudder step inputs.
+        """    
+        delta_c = 10 * (math.pi/180)    
+        if t > 50:
+            delta_c = 0
+            
+        u_control = np.array([delta_c],float)   
+         
+        return u_control          
+        
+        
+
