@@ -9,10 +9,11 @@ is used to define multiple vehicle objects for real-time simulation. The python 
     /vehicles/                 Vehicle classes and methods:  
         DSRV.py                     - Deep submergence rescue vehicle, L = 5.0 m
         otter.py                    - Otter USV, L = 1.2 m
+        shipClarke83.py             - Ship, linear maneuvering model specified by L, B and T using the Clarke (1983) formulas
     /functions/                Functions used my the main program:
-        guidance.py                 - guidance functions
         control.py                  - feedback control systems
-        kinematics.py               - kinematic functions
+        gnc.py                      - generic GNC functions
+        guidance.py                 - guidance functions        
         mainLoop.py                 - main simulation loop
         plotTimeSeries.py           - plotting functions
         
