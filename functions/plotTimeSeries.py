@@ -84,13 +84,12 @@ def plotVehicleStates(simTime, simData, figNo):
 
     plt.subplot(3, 3, 6)
     plt.plot(t, theta, t, alpha_c)
-    plt.xlabel('Time (s)', fontsize=12)   
     plt.legend(['Pitch angle (deg)','Flight path angle (deg)'],fontsize=legendSize)      
     plt.grid()
  
     plt.subplot(3, 3, 7)
-    plt.plot(t, u, t, v, t, w)  
-    plt.xlabel('Time (s)', fontsize=12)     
+    plt.plot(t, u, t, v, t, w)    
+    plt.xlabel('Time (s)', fontsize=12)      
     plt.legend(['Surge velocity (m/s)','Sway velocity (m/s)',
                 'Heave velocity (m/s)'],fontsize=legendSize)   
     plt.grid()
@@ -103,7 +102,8 @@ def plotVehicleStates(simTime, simData, figNo):
     plt.grid()
 
     plt.subplot(3, 3, 9)
-    plt.plot(t, psi, t, beta_c)    
+    plt.plot(t, psi, t, beta_c)  
+    plt.xlabel('Time (s)', fontsize=12)   
     plt.legend(['Yaw angle (deg)','Crab angle (deg)'],fontsize=legendSize)
     plt.grid()   
 
@@ -133,6 +133,7 @@ def plotControls(simTime, simData, vehicle, figNo):
         plt.subplot(row, col, i+1)
         plt.plot(t, u)
         plt.legend([vehicle.controls[i]],fontsize=legendSize) 
+        plt.xlabel('Time (s)', fontsize=12) 
         plt.grid()    
     
     
