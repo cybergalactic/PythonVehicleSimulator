@@ -1,34 +1,45 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-otter.py:  
-        
-    
-    UPDATE THIS    
-    
-    *********** otter(x,n,mp,rp,V_c,beta_c) returns the speed U in m/s (optionally)  
-otter(eta,nu,u,sampleTime) returns returns nu[k+1] of the state vector 
-nu[k]  = [ u v w p q r]' for the Maritime Robotics Otter USV, see www.maritimerobotics.com. 
-The length of the USV is L = 2.0 m and the inputs are:
+otter.py: 
+    Class for the Maritime Robotics Otter USV, see www.maritimerobotics.com. 
+    The length of the USV is L = 2.0 m. The constructors are:
 
-u = [ n1 n2 ]' where
+    otter()                                          Step inputs for n1 and n2
+    otter('headingAutopilot',psi_d,V_current,beta_current,tau_X)  Heading autopilot 
+       psi_d: desired yaw angle (deg)
+       V_current: cuurent speed (m/s)
+       beta_c: current direction (deg)
+       tau_X: surge force, pilot input (N)
+        
+Methods:
+    
+nu = dynamics(eta,nu,u,sampleTime) 
+    returns nu[k+1] using Euler's method. The control inputs are:
+
+    u = [ n1 n2 ]' where 
       n1: propeller shaft speed, left (rad/s)
       n2: propeller shaft speed, right (rad/s)
 
- V_c:     current speed (m/s)
- beta_c:  current direction (rad)
+u = headingAutopilot(eta,nu,sampleTime) 
+    is a PID controller for automatic heading control based on pole placement.
 
+u = stepInput(t) generates propeller step inputs.
+
+[n1, n2] = controlAllocation(tau_X, tau_N)     
+    control allocation function.
+    
+---
 References: 
   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
      Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
-Date:       20 July 2021
+Date:       25 July 2021
 """
 import numpy as np
 import math
 from functions.control import PIDpolePlacement
-from functions.kinematics import Smtrx,Hmtrx,m2c,crossFlowDrag
+from functions.kinematics import Smtrx,Hmtrx,m2c,crossFlowDrag,sat
 
 # Class Vehicle
 class otter:
@@ -37,8 +48,9 @@ class otter:
     otter('headingAutopilot',psi_d)  Heading autopilot, desired yaw angle (deg)
     """        
     def __init__(self, controlSystem = 'stepInput', 
-                 r = 0, V_current = 0, beta_current = 0):
+                 r = 0, V_current = 0, beta_current = 0, tau_X = 120):
         
+       # TO BE ADDED IN PYTHON 3.10
        # match controlSystem: 
        #     case 'headingAutopilot':
        #         self.controlDescription = 'Step input, n1 = n2 = ' + str(r) + ' (rad/s)'
@@ -56,6 +68,7 @@ class otter:
         self.V_c = V_current
         self.beta_c = beta_current
         self.controlMode = controlSystem
+        self.tauX = tau_X                       # surge force (N)
                     
         # Initialize the Otter USV model
         self.nu = np.array([0, 0, 0, 0, 0, 0], float)    
@@ -225,10 +238,8 @@ class otter:
         # Control forces and moments - with propeller revolution saturation 
         thrust = np.zeros(2)
         for i in range(0,2):
-            if u_control[i] > self.n_max:     # saturation, physical limits
-                u_control[i] = self.n_max 
-            elif u_control[i] < self.n_min:
-                u_control[i] = self.n_min
+            # saturation, physical limits
+            u_control[i] = sat(u_control[i],self.n_min, self.n_max)  
 
             if u_control[i] > 0:            # positive thrust              
                 thrust[i] = self.k_pos * u_control[i] * abs(u_control[i])  
@@ -259,8 +270,11 @@ class otter:
         
         return nu
     
-    # [n1, n2] = controlAllocation(tau_X, tau_N)
+
     def controlAllocation(self,tau_X, tau_N):
+        """
+        [n1, n2] = controlAllocation(tau_X, tau_N) 
+        """
         
         tau = np.array([tau_X, tau_N])            # tau = B * u_alloc
         u_alloc = np.matmul(self.Binv, tau)       # u_alloc = inv(B) * tau
@@ -273,13 +287,11 @@ class otter:
     
     def headingAutopilot(self,eta,nu,sampleTime):
         """
-        u_control = headingAutopilot(eta,nu,sampleTime) is a PID controller for 
-        automatic heading control based on pole placement.
+        |tau_X,tau_N] = headingAutopilot(eta,nu,sampleTime) is a PID controller 
+        for automatic heading control based on pole placement.
         
-        
-        tau_N = XXXXX
-        
-        
+        tau_N = (T/K) * a_d + (1/K) * omega_d - Kp * ( ssa( x_hat(4)-chi_d ) +
+            Td * (x_hat(5) - omega_d) + (1/Ti) * z );
         
         """                  
         r_max = 10 * math.pi / 180   # maximum yaw rate 
@@ -295,7 +307,6 @@ class otter:
         wn_d = self.wn_d            # reference model natural frequency
         zeta_d = self.zeta_d        # reference model relative damping factor
 
-
         m = 41.4             # moment of inertia in yaw including added mass
         T = 1
         K = 0 # T / m
@@ -303,7 +314,7 @@ class otter:
         k = 0
 
         # PID feedback controller with 3rd-order reference model
-        tau_X = 120
+        tau_X = self.tauX
                 
         [tau_N, self.z_int, self.psi_d, self.r_d, self.a_d] = \
             PIDpolePlacement( e_psi, e_r, self.z_int,self.psi_d, self.r_d, self.a_d, \
