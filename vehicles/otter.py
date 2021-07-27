@@ -39,7 +39,7 @@ Date:       25 July 2021
 import numpy as np
 import math
 from functions.control import PIDpolePlacement
-from functions.kinematics import Smtrx,Hmtrx,m2c,crossFlowDrag,sat
+from functions.gnc import Smtrx,Hmtrx,m2c,crossFlowDrag,sat
 
 # Class Vehicle
 class otter:
