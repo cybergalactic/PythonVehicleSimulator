@@ -8,7 +8,7 @@ shipClarke83.py:
        
    shipClarke83()                           
        Step input, rudder aangle     
-   shipClarke83('headingAutopilot',L,B,T,psi_d,L,B,T,Cb,V_current,beta_c,tau_X)                 
+   shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_current,beta_c,tau_X)                 
        Heading autopilot desired yaw angle (deg)
 
    Methods:
@@ -43,7 +43,7 @@ class shipClarke83:
     """
     shipClarke83()                                
         Step input, rudder angle      
-    shipClarke83('headingAutopilot',L,B,T,psi_d,L,B,T,Cb,V_current,beta_c,tau_X)                
+    shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_current,beta_c,tau_X)                
         Heading autopilot desired yaw angle (deg)
     """        
     def __init__(self, controlSystem = 'stepInput', r = 0, L = 50, B = 7, 
@@ -72,12 +72,48 @@ class shipClarke83:
         self.Lambda = 0.7       # rudder aspect ratio:  Lambda = b**2 / AR         
         self.tau_X = tau_X      # surge force (N), pilot input
         self.deltaMax = 30      # max rudder angle (deg)   
-        self.T_delta = 5;       # rudder time constants (s)
-        self.nu  = np.array([1, 0, 0, 0, 0, 0], float )    # velocity vector    
+        self.T_delta = 1.0;     # rudder time constants (s)
+        self.nu  = np.array([2, 0, 0, 0, 0, 0], float )    # velocity vector    
         self.delta  = 0.0       # rudder angle state (rad)
-        self.controls = ['Rudder (deg)']
-        self.dimU = len(self.controls)
-    
+        self.controls = ['Rudder angle (deg)']
+        self.dimU = len(self.controls)    
+
+        if self.L > 100:
+            self.R66 = 0.27 * self.L  # approx. radius of gyration in yaw (m)
+        else:
+            self.R66 = 0.25 * self.L    
+
+        # Heading autopilot
+        self.z_int = 0           # integral state   
+        self.wn = 0.4            # PID pole placement
+        self.zeta = 1
+        
+        # Reference model
+        self.psi_d = 0            # angle, angular rate and angular acc. states
+        self.r_d = 0
+        self.a_d = 0
+        self.wn_d = self.wn / 5
+        self.zeta_d = 1       
+
+        # controller parameters m, d and k
+        U0 = 3     # cruise speed
+        [M,N] = clarke83(U0,self.L, self.B, self.T,self.Cb,self.R66,0,self.L)
+        self.m_PID = M[2][2]
+        self.d_PID = N[2][2] 
+        self.k_PID = 0   
+
+        # Rudder yaw moment coefficient (Fossen 2021, Chapter 9.5.1)
+        b = 0.7 * self.T                                   # rudder height
+        AR = b**2 / self.Lambda                            # aspect ratio: Lamdba = b**2/AR 
+        CN = 6.13 * self.Lambda  / ( self.Lambda  + 2.25 ) # normal coefficient
+        t_R = 1 - 0.28 * self.Cb - 0.55
+        a_H = 0.4
+        x_R = -0.45 * self.L
+        x_H = -1.0 * self.L
+
+        # tau_N = Yd * delta
+        self.Nd = -0.25 * ( x_R + a_H * x_H ) * self.rho * U0**2 * AR * CN  
+        
         
     def dynamics(self,eta,nu,u_control,sampleTime):
         """
@@ -122,13 +158,9 @@ class shipClarke83:
         # Linear maneuvering model
         T_surge = self.L        # approx. time constant in surge (s)
         xg = 0                  # approx. x-coordinate, CG (m)      
-        if self.L > 100:
-            R66 = 0.27 * self.L  # approx. radius of gyration in yaw (m)
-        else:
-            R66 = 0.25 * self.L          
-        
+                
         # 3-DOF ship model
-        [M,N] = clarke83(U_r,self.L, self.B, self.T,self.Cb,R66,xg,T_surge)
+        [M,N] = clarke83(U_r,self.L, self.B, self.T,self.Cb,self.R66,xg,T_surge)
         Minv = np.linalg.inv(M)
         nu3 = np.array( [ nu_r[0],nu_r[1],nu_r[2] ])         
         nu3_dot = np.matmul( Minv, tau - np.matmul(N,nu3) ) 
@@ -142,13 +174,12 @@ class shipClarke83:
         
         # Rudder dynamics
         delta_dot = (delta_c - self.delta) / self.T_delta    
-        
+
         # Forward Euler integration
         nu  = nu + sampleTime * nu_dot
         self.delta = self.delta + sampleTime * delta_dot
         
         return nu        
-        
         
     def stepInput(self,t):
         """
@@ -160,7 +191,45 @@ class shipClarke83:
             
         u_control = np.array([delta_c],float)   
          
-        return u_control          
+        return u_control   
+
+    def headingAutopilot(self,eta,nu,sampleTime):
+        """
+        tau_N = headingAutopilot(eta,nu,sampleTime) is a PID controller 
+        for automatic heading control based on pole placement.
         
+        tau_N = m * a_d + d * r_d 
+              - Kp * ( ssa( psi-psi_d ) + Td * (r - r_d) + (1/Ti) * z )        
+        """                  
+
+        r_max = 1.0 * math.pi / 180   # maximum yaw rate 
+
+        psi = eta[5]                # yaw angle
+        r = nu[5]                   # yaw rate
+        e_psi = psi - self.psi_d    # yaw angle tracking error
+        e_r   = r - self.r_d        # yaw rate tracking error
+        psi_ref = self.ref * math.pi / 180  # yaw angle setpoint
+    
+        wn = self.wn                # PID natural frequency
+        zeta = self.zeta            # PID natural relative damping factor
+        wn_d = self.wn_d            # reference model natural frequency
+        zeta_d = self.zeta_d        # reference model relative damping factor
+
+        m = self.m_PID 
+        d = self.d_PID
+        k = 0
+
+        # PID feedback controller with 3rd-order reference model               
+        [tau_N, self.z_int, self.psi_d, self.r_d, self.a_d] = \
+            PIDpolePlacement( e_psi, e_r, self.z_int,self.psi_d, self.r_d, self.a_d, \
+            m, d, k, wn_d, zeta_d, wn, zeta, psi_ref, r_max, sampleTime )
+        
+        # Control allocation: tau_N = Yd * delta
+        delta_c = tau_N / self.Nd                       # rudder command
+    
+        u_control = np.array([delta_c],float)    
+         
+        return u_control     
+    
         
 
