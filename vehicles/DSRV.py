@@ -2,29 +2,28 @@
 """
 DSRV.py:  
 
-    Class for the Naval Postgraduate School depp submergence rescue vehicle
+    Class for the Naval Postgraduate School deep submergence rescue vehicle
     (DSRV). The length of the vehicle is L = 5.0 m and the state vector is 
-    nu[k]  = [ 0 0 w 0 q 0]' where w is the heave velocity (m/s) and q is the
+    nu  = [ 0 0 w 0 q 0]' where w is the heave velocity (m/s) and q is the
     pitch rate (rad/s).  The constructors are:
         
-    DSRV('deptAutopilot',z_d)   depth autopilot, desired depth (m)
-    DSRV('stepInput',delta_c)   step input, stern plane (deg)   
+    DSRV()                      Step input, rudder angel
+    DSRV('deptAutopilot',z_d)   Depth autopilot, desired depth (m)
 
     Methods:   
         
-   nu = dynamics(eta,nu,u,sampleTime)     
-       returns nu[k+1] using Euler's method. The control input u = delta_s 
-       in rad is the stern plane.
+   nu = dynamics(eta,nu,u,sampleTime) returns nu[k+1] using Euler's method. 
+   The control input u = delta_s (rad) is for the DSRV stern plane.
 
-   u = headingAutopilot(eta,nu,sampleTime) is a PID controller for 
-       automatic heading control based on pole placement and reference 
-       feedforward.
+   u = depthAutopilot(eta,nu,sampleTime) 
+       PID controller for automatic depth control based on pole placement and 
+       reference feedforward.
        
    u = stepInput(t) generates stern plane step inputs.   
        
 ---
 References: 
-  A.J. Healey (1992). Marine Vehicle Dynamics Lecture Notes and 
+  A. J. Healey (1992). Marine Vehicle Dynamics Lecture Notes and 
     Problem Sets, Naval Postgraduate School (NPS), Monterey, CA.
   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
      Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
@@ -39,9 +38,8 @@ from functions.control import PIDpolePlacement
 # Class Vehicle
 class DSRV:
     """
-    DSRV()                      default control system, step input
-    DSRV('deptAutopilot',z_d)   depth autopilot, desired depth (m)
-    DSRV('stepInput',delta_c)   step input, stern plane (deg)
+    DSRV()                      Step input, rudder angel
+    DSRV('deptAutopilot',z_d)   Depth autopilot, desired depth (m)
     """        
     def __init__(self, controlSystem = 'stepInput', r = 0):
                             
@@ -106,13 +104,10 @@ class DSRV:
         self.wn_d = self.wn / 5
         self.zeta_d = 1        
         
-    def __del__(self):
-        pass
-        
     def dynamics(self,eta,nu,u_control,sampleTime):
         """
         nu = dynamics(eta,nu,u,sampleTime) integrates the DSRV
-        equations of motion.
+        equations of motion using Euler's method.
         """       
         # states and inputs: eta[k], nu[k], u[k]
         delta_c = u_control[0]
