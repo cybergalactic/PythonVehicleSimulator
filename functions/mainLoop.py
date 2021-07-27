@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Main simulation loop.
 
 Author:     Thor I. Fossen
-Date:       19 July 2021
+Date:       25 July 2021
 """
 
 from .kinematics import attitudeEuler
