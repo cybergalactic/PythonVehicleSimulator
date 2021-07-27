@@ -1,14 +1,16 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Guidance methods.
+Guidance algorithms.
+    
+[x_d,v_d,a_d] = refModel3(x_d, v_d, a_d, r, wn_d, zeta_d, v_max, sampleTime)
+    3rd-order reference model with saturation
 
+---
 Reference: T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-Motion Control. 2nd. Edition, Wiley. 
-URL: www.fossen.biz/wiley
+Motion Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley
 
 Author:     Thor I. Fossen
-Date:       19 July 2021
+Date:       25 July 2021
 Revisions: 
 """
 
