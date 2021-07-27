@@ -1,14 +1,16 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Control methods.
 
+u = PIDpolePlacement(_x,e_v,e_int,x_d,v_d,a_d,m,d,k,wn_d,zeta_d,wn,zeta,r,v_max,sampleTime)
+    PID control law based on pole placement and reference feedforward.
+
+---
 Reference: T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-Motion Control. 2nd. Edition, Wiley. 
-URL: www.fossen.biz/wiley
+Motion Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley
 
 Author:     Thor I. Fossen
-Date:       19 July 2021
+Date:       25 July 2021
 Revisions: 
 """
 
