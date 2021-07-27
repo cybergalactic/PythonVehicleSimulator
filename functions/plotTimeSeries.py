@@ -83,10 +83,11 @@ def plotVehicleStates(simTime, simData, figNo):
     plt.grid()
 
     plt.subplot(3, 3, 6)
-    plt.plot(t, beta_c, t, psi)    
-    plt.legend(['Crab angle (deg)','Yaw angle (deg)'],fontsize=legendSize)
+    plt.plot(t, theta, t, alpha_c)
+    plt.xlabel('Time (s)', fontsize=12)   
+    plt.legend(['Pitch angle (deg)','Flight path angle (deg)'],fontsize=legendSize)      
     plt.grid()
-    
+ 
     plt.subplot(3, 3, 7)
     plt.plot(t, u, t, v, t, w)  
     plt.xlabel('Time (s)', fontsize=12)     
@@ -102,10 +103,9 @@ def plotVehicleStates(simTime, simData, figNo):
     plt.grid()
 
     plt.subplot(3, 3, 9)
-    plt.plot(t, alpha_c, t, theta)
-    plt.xlabel('Time (s)', fontsize=12)   
-    plt.legend(['Flight path angle (deg)','Pitch angle (deg)'],fontsize=legendSize)      
-    plt.grid()
+    plt.plot(t, psi, t, beta_c)    
+    plt.legend(['Yaw angle (deg)','Crab angle (deg)'],fontsize=legendSize)
+    plt.grid()   
 
 # plotControls(simTime, simData) plots the vehicle control inputs versus time
 # in figure no. figNo
