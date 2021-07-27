@@ -284,11 +284,11 @@ class otter:
     
     def headingAutopilot(self,eta,nu,sampleTime):
         """
-        |tau_X,tau_N] = headingAutopilot(eta,nu,sampleTime) is a PID controller 
+        u = headingAutopilot(eta,nu,sampleTime) is a PID controller 
         for automatic heading control based on pole placement.
         
-        tau_N = (T/K) * a_d + (1/K) * omega_d - Kp * ( ssa( x_hat(4)-chi_d ) +
-            Td * (x_hat(5) - omega_d) + (1/Ti) * z );
+        tau_N = (T/K) * a_d + (1/K) * rd 
+               - Kp * ( ssa( psi-psi_d ) + Td * (r - r_d) + (1/Ti) * z )
         
         """                  
         r_max = 10 * math.pi / 180   # maximum yaw rate 
