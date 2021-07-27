@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Kinematic and kinetics. 
@@ -13,6 +12,15 @@ Date:       19 July 2021
 
 import numpy as np
 import math
+
+# x = sat(x,x_min,x_max) saturates a signal x such that x_min <= x <= x_max
+def sat(x, x_min, x_max):
+    if x > x_max:
+        x = x_max 
+    elif x < x_min:
+        x = x_min
+        
+    return x    
 
 # S = Smtrx(a) computes the 3x3 vector skew-symmetric matrix S(a) = -S(a)'.
 # The cross product satisfies: a x b = S(a)b. 
