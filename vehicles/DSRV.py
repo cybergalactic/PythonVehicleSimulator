@@ -121,7 +121,7 @@ class DSRV:
         # Speed dependent pitch moment
         Mtheta = -0.156276 / U**2
         
-        # Rudder saturation
+        # Rudder angle saturation
         if ( abs(delta_c) >= self.deltaMax * math.pi/180 ):
             delta_c = np.sign(delta_c) * self.deltaMax * math.pi/180
 
