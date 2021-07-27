@@ -4,6 +4,7 @@ __pycache__
 
 # demo files (TIF)
 demo*.py
+test.py
 
 # Distribution / packaging 
 .Python build/ 
