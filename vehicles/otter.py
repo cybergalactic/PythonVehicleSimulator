@@ -1,34 +1,34 @@
 # -*- coding: utf-8 -*-
 """
 otter.py: 
-    Class for the Maritime Robotics Otter USV, see www.maritimerobotics.com. 
+    Class for the Maritime Robotics Otter USV, www.maritimerobotics.com. 
     The length of the USV is L = 2.0 m. The constructors are:
 
     otter()                                          Step inputs for n1 and n2
-    otter('headingAutopilot',psi_d,V_current,beta_current,tau_X)  Heading autopilot 
-       psi_d: desired yaw angle (deg)
-       V_current: cuurent speed (m/s)
-       beta_c: current direction (deg)
-       tau_X: surge force, pilot input (N)
+    otter('headingAutopilot',psi_d,V_current,beta_current,tau_X)  
+       Heading autopilot with options:
+          psi_d: desired yaw angle (deg)
+          V_current: cuurent speed (m/s)
+          beta_c: current direction (deg)
+          tau_X: surge force, pilot input (N)
         
 Methods:
     
-nu = dynamics(eta,nu,u,sampleTime) 
-    returns nu[k+1] using Euler's method. The control inputs are:
+nu = dynamics(eta,nu,u,sampleTime) returns nu[k+1] using Euler's method. 
+    The control inputs are:
 
     u = [ n1 n2 ]' where 
       n1: propeller shaft speed, left (rad/s)
       n2: propeller shaft speed, right (rad/s)
 
 u = headingAutopilot(eta,nu,sampleTime) 
-    is a PID controller for automatic heading control based on pole placement.
+    PID controller for automatic heading control based on pole placement.
 
 u = stepInput(t) generates propeller step inputs.
 
 [n1, n2] = controlAllocation(tau_X, tau_N)     
-    control allocation function.
+    Control allocation algorithm.
     
----
 References: 
   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
      Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
@@ -203,13 +203,10 @@ class otter:
         self.wn_d = self.wn / 5
         self.zeta_d = 1        
         
-    def __del__(self):
-        pass
-        
     def dynamics(self,eta,nu,u_control,sampleTime):
         """
         nu = dynamics(eta,nu,u,sampleTime) integrates the Otter USV 
-        equations of motion.
+        equations of motion using Euler's method.
         """       
         # current velocities
         u_c = self.V_c * math.cos(self.beta_c - eta[5])      # current surge velocity
