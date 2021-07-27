@@ -1,10 +1,12 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Simulator plotting functions.
+Simulator plotting functions:
+
+plotVehicleStates(simTime, simData, figNo) 
+plotControls(simTime, simData))
 
 Author:     Thor I. Fossen
-Date:       19 July 2021
+Date:       25 July 2021
 """
 
 import math
