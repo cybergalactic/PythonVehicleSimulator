@@ -12,8 +12,9 @@ DSRV.py:
 
     Methods:   
         
-   nu = dynamics(eta,nu,u,sampleTime) returns nu[k+1] using Euler's method. 
-   The control input u = delta_s (rad) is for the DSRV stern plane.
+   [nu, u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) returns
+       nu[k+1] and u_actual[k+1] using Euler's method. The control input 
+       u_actual = delta_s (rad) is for the DSRV stern plane.
 
    u = depthAutopilot(eta,nu,sampleTime) 
        PID controller for automatic depth control based on pole placement and 
@@ -42,14 +43,7 @@ class DSRV:
     DSRV('deptAutopilot',z_d)   Depth autopilot, desired depth (m)
     """        
     def __init__(self, controlSystem = 'stepInput', r = 0):
-                            
-     # TO BE ADDED IN PYTHON 3.10
-       # match controlSystem: 
-       #     case 'headingAutopilot':
-       #         self.controlDescription = 'Step input, n1 = n2 = ' + str(r) + ' (rad/s)'
-       #     case _:
-       #         self.controlDescription = "ERROR, legal options {headingAutopilot, stepInput}" 
-        
+                                  
         if (controlSystem == 'depthAutopilot'):
             self.controlDescription = 'Depth autopilot, setpoint z_d = ' + str(r) + ' (m)'
              
@@ -62,16 +56,16 @@ class DSRV:
                     
         # Initialize the DSRV model
         self.name = "DSRV"
-        self.L = 5.0        # Length
-        
-        self.deltaMax = 30  # max stern plane angle (deg)     
-        self.controls = ['Stern plane (deg)']
-        self.dimU = len(self.controls)
-        
+        self.L = 5.0        # Length      
+        self.deltaMax = 20  # max stern plane angle (deg)  
+        self.T_delta = 1.0  # rudder time constants (s)          
         self.U0 = 4.11      # Cruise speed: 4.11 m/s = 8 knots 
         self.W0 = 0
-        self.nu  = np.array([ self.U0, 0, self.W0, 0, 0, 0], float )
-        self.delta  = 0.0      # stern plane state
+        self.nu  = np.array([ self.U0, 0, self.W0, 0, 0, 0], float ) # velocity vector  
+        self.u_actual = np.array([0],float)                     # control input vector              
+
+        self.controls = ['Stern plane (deg)']
+        self.dimU = len(self.controls)
         
         # Non-dimensional mass matrix 
         Iy  =  0.001925
@@ -102,15 +96,18 @@ class DSRV:
         self.w_d = 0
         self.a_d = 0
         self.wn_d = self.wn / 5
-        self.zeta_d = 1        
+        self.zeta_d = 1       
+
         
-    def dynamics(self,eta,nu,u_control,sampleTime):
+    def dynamics(self,eta,nu,u_actual,u_control,sampleTime):
         """
-        nu = dynamics(eta,nu,u,sampleTime) integrates the DSRV
-        equations of motion using Euler's method.
+        [nu, u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime)
+        integrates the DSRV equations of motion using Euler's method.
         """       
-        # states and inputs: eta[k], nu[k], u[k]
+
+        # States and inputs
         delta_c = u_control[0]
+        delta   = u_actual[0]        
         w     = nu[2]
         q     = nu[4] 
         theta = eta[4]
@@ -122,12 +119,12 @@ class DSRV:
         Mtheta = -0.156276 / U**2
         
         # Rudder angle saturation
-        if ( abs(delta_c) >= self.deltaMax * math.pi/180 ):
-            delta_c = np.sign(delta_c) * self.deltaMax * math.pi/180
+        if ( abs(delta) >= self.deltaMax * math.pi/180 ):
+            delta = np.sign(delta) * self.deltaMax * math.pi/180
 
         # Forces and moments        
-        Z = self.Zq * q + self.Zw * w + self.Zdelta * self.delta
-        M = self.Mq * q + self.Mw * w + Mtheta * theta + self.Mdelta * self.delta
+        Z = self.Zq * q + self.Zw * w + self.Zdelta * delta
+        M = self.Mq * q + self.Mw * w + Mtheta * theta + self.Mdelta * delta
             
         # State derivatives (with dimension)
         nu_dot = np.zeros(6)
@@ -135,16 +132,18 @@ class DSRV:
         nu_dot[4] = ( -self.m21 * Z + self.m11 * M) / self.detM      
         
         # stern plane dynamics
-        delta_dot = (delta_c - self.delta) / 1.0    # rudder dynamics
+        delta_dot = (delta_c - delta) / self.T_delta      # rudder dynamics
         
-        # Forward Euler integration
+        # Forward Euler integration [k+1]
         nu  = nu + sampleTime * nu_dot
-        self.delta = self.delta + sampleTime * delta_dot
+        delta = delta + sampleTime * delta_dot
         
         # Cruise speed (constant)
         nu[0] = self.U0
+
+        u_actual = np.array([delta],float)          
         
-        return nu
+        return nu, u_actual
     
     
     def stepInput(self,t):
