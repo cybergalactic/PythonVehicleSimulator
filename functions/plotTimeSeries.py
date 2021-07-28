@@ -27,10 +27,10 @@ def cm2inch(value):                 # inch to cm
 # position/attitude and velocities versus time in figure no. figNo
 def plotVehicleStates(simTime, simData, figNo):
            
-    # time vector
+    # Time vector
     t = simTime
         
-    # state vectors
+    # State vectors
     x = simData[:,0]
     y = simData[:,1]
     z = simData[:,2]
@@ -44,14 +44,14 @@ def plotVehicleStates(simTime, simData, figNo):
     q = R2D(simData[:,10])  
     r = R2D(simData[:,11]) 
    
-    # speed
+    # Speed
     U = np.sqrt( np.multiply(u,u) + np.multiply(v,v) + np.multiply(w,w) )
      
     beta_c  = R2D(np.arctan2(v,u))         # crab angle
     alpha_c = R2D(np.arctan2(w,u))         # flight path angle
     chi     = psi + beta_c                 # course angle
     
-    # plots
+    # Plots
     plt.figure(figNo,figsize=(cm2inch(figSize1[0]),cm2inch(figSize1[1])))
     plt.grid()
 
@@ -113,27 +113,33 @@ def plotControls(simTime, simData, vehicle, figNo):
 
     DOF = 6
     
-    # time vector
+    # Time vector
     t = simTime
     
     plt.figure(figNo,figsize=(cm2inch(figSize2[0]),cm2inch(figSize2[1])))
     
-    # col and rows needed to plot vehicle.dimU control inputs
+    # Columns and rows needed to plot vehicle.dimU control inputs
     col = 2
     row = int( math.ceil(vehicle.dimU / col) )
 
-    # plot the vehicle.dimU active control inputs
+    # Plot the vehicle.dimU active control inputs
     for i in range(0,vehicle.dimU):
         
-        u = simData[:,2*DOF+i]                  # control input
+        u_control = simData[:,2*DOF+i]                  # control input, commands
+        u_actual  = simData[:,2*DOF+vehicle.dimU+i]     # actual control input
         
-        if vehicle.controls[i].find("deg") != -1:  # convert angles to deg
-            u = R2D(u)
+        if vehicle.controls[i].find("deg") != -1:       # convert angles to deg
+            u_control = R2D(u_control)
+            u_actual  = R2D(u_actual)
 
         plt.subplot(row, col, i+1)
-        plt.plot(t, u)
-        plt.legend([vehicle.controls[i]],fontsize=legendSize) 
+        plt.plot(t, u_control, t, u_actual)
+        plt.legend([
+            vehicle.controls[i] + ', command', 
+            vehicle.controls[i] + ', actual'
+            ], fontsize=legendSize) 
         plt.xlabel('Time (s)', fontsize=12) 
         plt.grid()    
+
     
     
