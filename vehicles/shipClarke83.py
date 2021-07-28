@@ -13,8 +13,9 @@ shipClarke83.py:
 
    Methods:
         
-   nu = dynamics(eta,nu,u,sampleTime )returns nu[k+1] using Euler's method. 
-   The control input u = delta_r (rad) is for the ship rudder.
+   [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime )returns nu[k+1] 
+       nu[k+1] and u_actual[k+1] using Euler's method. The control input 
+       u_actual = delta_r (rad) is for the ship rudder.
 
    u = headingAutopilot(eta,nu,sampleTime) 
        PID controller for automatic depth control based on pole placement and 
@@ -72,24 +73,25 @@ class shipClarke83:
         self.Lambda = 0.7       # rudder aspect ratio:  Lambda = b**2 / AR         
         self.tau_X = tau_X      # surge force (N), pilot input
         self.deltaMax = 30      # max rudder angle (deg)   
-        self.T_delta = 1.0;     # rudder time constants (s)
+        self.T_delta = 1.0      # rudder time constants (s)      
         self.nu  = np.array([2, 0, 0, 0, 0, 0], float )    # velocity vector    
-        self.delta  = 0.0       # rudder angle state (rad)
-        self.controls = ['Rudder angle (deg)']
-        self.dimU = len(self.controls)    
+        self.u_actual = np.array([0],float)                # control input vector
 
         if self.L > 100:
             self.R66 = 0.27 * self.L  # approx. radius of gyration in yaw (m)
         else:
-            self.R66 = 0.25 * self.L    
+            self.R66 = 0.25 * self.L  
+
+        self.controls = ['Rudder angle (deg)']
+        self.dimU = len(self.controls)      
 
         # Heading autopilot
         self.z_int = 0           # integral state   
-        self.wn = 0.4            # PID pole placement
+        self.wn = 0.5            # PID pole placement
         self.zeta = 1
         
         # Reference model
-        self.psi_d = 0            # angle, angular rate and angular acc. states
+        self.psi_d = 0           # angle, angular rate and angular acc. states
         self.r_d = 0
         self.a_d = 0
         self.wn_d = self.wn / 5
@@ -114,11 +116,11 @@ class shipClarke83:
         # tau_N = Yd * delta
         self.Nd = -0.25 * ( x_R + a_H * x_H ) * self.rho * U0**2 * AR * CN  
         
-        
-    def dynamics(self,eta,nu,u_control,sampleTime):
+
+    def dynamics(self,eta,nu,u_actual,u_control,sampleTime):
         """
-        nu = dynamics(eta,nu,u,sampleTime) integrates the ship equations of
-        motion using Euler's method.
+        [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) integrates 
+        the ship equations of motion using Euler's method.
         """   
         
         # Current velocities
@@ -130,8 +132,9 @@ class shipClarke83:
         
         U_r = math.sqrt( nu_r[0]**2 + nu_r[1]**2 )      # relative speed
         
-        # Rudder command
-        delta_c = u_control[0]  
+        # Rudder command and actual rudder angle
+        delta_c = u_control[0]
+        delta   = u_actual[0]
         
         # Rudder forces and moment (Fossen 2021, Chapter 9.5.1)
         b = 0.7 * self.T                                   # rudder height
@@ -147,7 +150,7 @@ class shipClarke83:
         Nd = -0.25 * ( x_R + a_H * x_H ) * self.rho * U_r**2 * AR * CN 
         
         # Control forces and moment
-        delta_R = -self.delta               # physical rudder angle (rad)
+        delta_R = -delta                    # physical rudder angle (rad)
         T = self.tau_X                      # thrust (N)
         t_deduction = 0.1                   # thrust deduction number
         tau1 =  ( 1 -  t_deduction ) * T - Xdd * math.sin( delta_R )**2 
@@ -169,18 +172,21 @@ class shipClarke83:
         nu_dot = np.array( [ nu3_dot[0],nu3_dot[1],0,0,0,nu3_dot[2] ])  
 
         # Rudder angle saturation
-        if ( abs(delta_c) >= self.deltaMax * math.pi/180 ):
-            delta_c = np.sign(delta_c) * self.deltaMax * math.pi/180
+        if ( abs(delta) >= self.deltaMax * math.pi/180 ):
+            delta = np.sign(delta) * self.deltaMax * math.pi/180
         
         # Rudder dynamics
-        delta_dot = (delta_c - self.delta) / self.T_delta    
+        delta_dot = (delta_c - delta) / self.T_delta    
 
-        # Forward Euler integration
+        # Forward Euler integration [k+1]
         nu  = nu + sampleTime * nu_dot
-        self.delta = self.delta + sampleTime * delta_dot
+        delta = delta + sampleTime * delta_dot
+
+        u_actual = np.array([delta],float)  
+
+        return nu, u_actual         
         
-        return nu        
-        
+
     def stepInput(self,t):
         """
         delta_r = stepInput(t) generates rudder step inputs.
@@ -190,8 +196,9 @@ class shipClarke83:
             delta_c = 0
             
         u_control = np.array([delta_c],float)   
-         
+
         return u_control   
+
 
     def headingAutopilot(self,eta,nu,sampleTime):
         """
@@ -229,7 +236,7 @@ class shipClarke83:
     
         u_control = np.array([delta_c],float)    
          
-        return u_control     
+        return u_control    
     
         
 
