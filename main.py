@@ -28,9 +28,9 @@ otter('headingAutopilot',psi_d,V_c,beta_c,tau_X)   PID heading autopilot
 shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_current,beta_c,tau_X) PID heading autopilot
 """
 
-vehicle1 = DSRV('depthAutopilot',60.0) 
-vehicle2 = shipClarke83('headingAutopilot',-20,70,8,6,0.7,0.5,-10,1e5)
-vehicle3 = otter('headingAutopilot',100.0,0,0.1,120) 
+#vehicle = DSRV('depthAutopilot',60.0) 
+#vehicle = shipClarke83('headingAutopilot',-20,70,8,6,0.7,0.5,-10,1e5)
+vehicle2 = otter('headingAutopilot',100.0,0.3,-30,200) 
 
 # Main simulation loop 
 def main():
