@@ -8,14 +8,14 @@ otter.py:
     otter('headingAutopilot',psi_d,V_current,beta_current,tau_X)  
        Heading autopilot with options:
           psi_d: desired yaw angle (deg)
-          V_current: cuurent speed (m/s)
+          V_current: current speed (m/s)
           beta_c: current direction (deg)
           tau_X: surge force, pilot input (N)
         
 Methods:
     
-nu = dynamics(eta,nu,u,sampleTime) returns nu[k+1] using Euler's method. 
-    The control inputs are:
+[nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) returns 
+    nu[k+1] and u_actual[k+1] using Euler's method. The control inputs are:
 
     u = [ n1 n2 ]' where 
       n1: propeller shaft speed, left (rad/s)
@@ -48,14 +48,7 @@ class otter:
     otter('headingAutopilot',psi_d)  Heading autopilot, desired yaw angle (deg)
     """        
     def __init__(self, controlSystem = 'stepInput', 
-                 r = 0, V_current = 0, beta_current = 0, tau_X = 120):
-        
-       # TO BE ADDED IN PYTHON 3.10
-       # match controlSystem: 
-       #     case 'headingAutopilot':
-       #         self.controlDescription = 'Step input, n1 = n2 = ' + str(r) + ' (rad/s)'
-       #     case _:
-       #         self.controlDescription = "ERROR, legal options {headingAutopilot, stepInput}"           
+                 r = 0, V_current = 0, beta_current = 0, tau_X = 120):         
                 
         if (controlSystem == 'headingAutopilot'):
             self.controlDescription = 'Heading autopilot, setpoint psi_d = ' + str(r) + ' (deg)'
@@ -71,14 +64,16 @@ class otter:
         self.tauX = tau_X                       # surge force (N)
                     
         # Initialize the Otter USV model
-        self.nu = np.array([0, 0, 0, 0, 0, 0], float)    
-        self.n  = np.array([0, 0], float)       # propeller revolution states
-        self.name = "Otter USV"
+        self.T_n = 1.0                          # propeller time constants (s)          
         self.L = 2.0                            # Length (m)
-        self.B = 1.08                           # beam (m)        
-        self.controls = [ \
-            'Left propeller shaft speed (rad/s)', \
-             'Right propeller shaft speed (rad/s)']
+        self.B = 1.08                           # beam (m)           
+        self.nu = np.array([0, 0, 0, 0, 0, 0], float) # velocity vector    
+        self.u_actual = np.array([0, 0], float)       # propeller revolution states
+        self.name = "Otter USV"     
+        
+        self.controls = [ 
+            'Left propeller shaft speed (rad/s)', 
+             'Right propeller shaft speed (rad/s)' ]
         self.dimU = len(self.controls)  
 
         # Constants   
@@ -95,11 +90,11 @@ class otter:
         self.H_rg = Hmtrx(rg)
         self.S_rp = Smtrx(rp)        
 
-        R44 = 0.4 * self.B                           # radii of gyrations (m)
+        R44 = 0.4 * self.B                           # radii of gyration (m)
         R55 = 0.25 * self.L
         R66 = 0.25 * self.L
         T_yaw = 1.0                                  # time constant in yaw (s)
-        Umax = 6 * 0.5144                       # max forward speed (m/s)
+        Umax = 6 * 0.5144                            # max forward speed (m/s)
 
         # Data for one pontoon
         self.B_pont  = 0.25     # beam of one pontoon (m)
@@ -120,7 +115,7 @@ class otter:
         self.k_neg = 0.01289/2               # Negative Bollard, one propeller 
         self.n_max =  math.sqrt((0.5*24.4 * g)/self.k_pos) # max. prop. rev.
         self.n_min = -math.sqrt((0.5*13.6 * g)/self.k_neg) # min. prop. rev. 
-        
+
         # MRB_CG = [ (m+mp) * I3  O3
         #               O3       Ig ]        
         MRB_CG = np.zeros( (6,6) )
@@ -128,7 +123,7 @@ class otter:
         MRB_CG[3:6, 3:6] = self.Ig
         MRB = self.H_rg.T @ MRB_CG @ self.H_rg
 
-        # Hydrodynamic added mass (best practise)
+        # Hydrodynamic added mass (best practice)
         Xudot = -0.1 * m   
         Yvdot = -1.5 * m
         Zwdot = -1.0 * m
@@ -142,7 +137,7 @@ class otter:
         self.M = MRB + self.MA
         self.Minv = np.linalg.inv(self.M)
         
-        # Hydrostatic quantities (Fossen 2021)
+        # Hydrostatic quantities (Fossen 2021, Chapter 4)
         Aw_pont = Cw_pont * self.L * self.B_pont # waterline area, one pontoon 
         I_T = 2 * (1/12)*self.L * self.B_pont**3 * \
             (6*Cw_pont**3/((1+Cw_pont)*(1+2*Cw_pont))) + 2 * Aw_pont * y_pont**2
@@ -179,21 +174,20 @@ class otter:
         
         self.D = -np.diag([Xu, Yv, Zw, Kp, Mq, Nr])   
   
-        # trim: theta = -7.5 deg corresponds to 13.5 cm less height aft 
+        # Trim: theta = -7.5 deg corresponds to 13.5 cm less height aft 
         self.trim_moment = 0
         self.trim_setpoint = 280;   
         
-       # propeller configuration/input matrix 
+        # Propeller configuration/input matrix 
         B = self.k_pos * \
             np.array([
                 [1, 1],
                 [-self.l1, -self.l2] ])
         self.Binv = np.linalg.inv(B)
- 
     
         # Heading autopilot
         self.z_int = 0           # integral state   
-        self.wn = 1.2             # PID pole placement
+        self.wn = 1.2            # PID pole placement
         self.zeta = 0.8
         
         # Reference model
@@ -203,12 +197,17 @@ class otter:
         self.wn_d = self.wn / 5
         self.zeta_d = 1        
         
-    def dynamics(self,eta,nu,u_control,sampleTime):
+
+    def dynamics(self,eta,nu,u_actual,u_control,sampleTime):
         """
-        nu = dynamics(eta,nu,u,sampleTime) integrates the Otter USV 
-        equations of motion using Euler's method.
-        """       
-        # current velocities
+        [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) integrates the  
+        Otter USV equations of motion using Euler's method.
+        """   
+
+        # Input vector
+        n = np.array( [u_actual[0], u_actual[1]] )  
+
+        # Current velocities
         u_c = self.V_c * math.cos(self.beta_c - eta[5])      # current surge velocity
         v_c = self.V_c * math.sin(self.beta_c - eta[5])      # current sway velocity
 
@@ -235,16 +234,16 @@ class otter:
         # Control forces and moments - with propeller revolution saturation 
         thrust = np.zeros(2)
         for i in range(0,2):
-            # saturation, physical limits
-            u_control[i] = sat(u_control[i],self.n_min, self.n_max)  
+            
+            n[i] = sat(n[i],self.n_min,self.n_max)  # saturation, physical limits
 
-            if u_control[i] > 0:            # positive thrust              
-                thrust[i] = self.k_pos * u_control[i] * abs(u_control[i])  
-            else:                           # negative thrust 
-                thrust[i] = self.k_neg * u_control[i] * abs(u_control[i]) 
+            if n[i] > 0:                                    # positive thrust              
+                thrust[i] = self.k_pos * n[i] * abs(n[i])  
+            else:                                           # negative thrust 
+                thrust[i] = self.k_neg * n[i] * abs(n[i]) 
 
         # Control forces and moments
-        tau = np.array([thrust[0] + thrust[1], 0, 0, 0, 0, 
+        tau = np.array( [thrust[0] + thrust[1], 0, 0, 0, 0, 
                        -self.l1 * thrust[0] - self.l2 * thrust[1] ])
 
         # Hydrodynamic linear damping + nonlinear yaw damping
@@ -257,22 +256,23 @@ class otter:
             - np.matmul(self.G,eta) - g_0
        
         nu_dot = np.matmul(self.Minv, sum_tau)   # USV dynamics
-        n_dot = (u_control - self.n) / 1.0       # propeller dynamics
-        trim_dot = (self.trim_setpoint - self.trim_moment) # trim dynamics
+        n_dot = (u_control - n) / self.T_n       # propeller dynamics
+        trim_dot = self.trim_setpoint - self.trim_moment # trim dynamics
 
         # Forward Euler integration
-        nu  = nu + sampleTime * nu_dot
-        self.n = self.n + sampleTime * n_dot
+        nu = nu + sampleTime * nu_dot
+        n  = n  + sampleTime * n_dot
         self.trim_moment = self.trim_moment + sampleTime * trim_dot
+
+        u_actual = np.array(n,float)          
         
-        return nu
+        return nu, u_actual        
     
 
     def controlAllocation(self,tau_X, tau_N):
         """
         [n1, n2] = controlAllocation(tau_X, tau_N) 
         """
-        
         tau = np.array([tau_X, tau_N])            # tau = B * u_alloc
         u_alloc = np.matmul(self.Binv, tau)       # u_alloc = inv(B) * tau
         
@@ -281,6 +281,7 @@ class otter:
         n2 = np.sign(u_alloc[1]) * math.sqrt( abs(u_alloc[1]) )
         
         return n1, n2
+
     
     def headingAutopilot(self,eta,nu,sampleTime):
         """
@@ -306,8 +307,8 @@ class otter:
 
         m = 41.4             # moment of inertia in yaw including added mass
         T = 1
-        K = 0 # T / m
-        d = 0 # 1/K                 
+        K = 0   # T/m
+        d = 0   # 1/K                 
         k = 0
 
         # PID feedback controller with 3rd-order reference model
