@@ -4,7 +4,8 @@ otter.py:
     Class for the Maritime Robotics Otter USV, www.maritimerobotics.com. 
     The length of the USV is L = 2.0 m. The constructors are:
 
-    otter()                                          Step inputs for n1 and n2
+    otter()                                          
+        Step inputs for propeller revolutions n1 and n2
     otter('headingAutopilot',psi_d,V_current,beta_current,tau_X)  
        Heading autopilot with options:
           psi_d: desired yaw angle (deg)
@@ -17,7 +18,7 @@ Methods:
 [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) returns 
     nu[k+1] and u_actual[k+1] using Euler's method. The control inputs are:
 
-    u = [ n1 n2 ]' where 
+    u_control = [ n1 n2 ]' where 
       n1: propeller shaft speed, left (rad/s)
       n2: propeller shaft speed, right (rad/s)
 
@@ -34,7 +35,6 @@ References:
      Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
-Date:       25 July 2021
 """
 import numpy as np
 import math
@@ -51,7 +51,7 @@ class otter:
                  r = 0, V_current = 0, beta_current = 0, tau_X = 120):         
                 
         if (controlSystem == 'headingAutopilot'):
-            self.controlDescription = 'Heading autopilot, setpoint psi_d = ' + str(r) + ' (deg)'
+            self.controlDescription = 'Heading autopilot, psi_d = ' + str(r) + ' (deg)'
              
         else:  
             self.controlDescription = 'Step inputs for n1 and n2'
@@ -186,7 +186,7 @@ class otter:
         self.Binv = np.linalg.inv(B)
     
         # Heading autopilot
-        self.z_int = 0           # integral state   
+        self.e_int = 0           # integral state   
         self.wn = 1.2            # PID pole placement
         self.zeta = 0.8
         
@@ -314,10 +314,9 @@ class otter:
         # PID feedback controller with 3rd-order reference model
         tau_X = self.tauX
                 
-        [tau_N, self.z_int, self.psi_d, self.r_d, self.a_d] = \
-            PIDpolePlacement( e_psi, e_r, self.z_int,self.psi_d, self.r_d, self.a_d, \
+        [tau_N, self.e_int, self.psi_d, self.r_d, self.a_d] = \
+            PIDpolePlacement( self.e_int, e_psi, e_r, self.psi_d, self.r_d, self.a_d, \
             m, d, k, wn_d, zeta_d, wn, zeta, psi_ref, r_max, sampleTime )
-    
 
         [n1, n2] = self.controlAllocation(tau_X, tau_N)
         u_control = np.array([n1, n2],float)   
@@ -331,7 +330,7 @@ class otter:
         n1 = 100        # rad/s
         n2 = 80
         
-        if t > 32:
+        if t > 30:
             n1 = 80
             n2 = 120
         if t > 70:
