@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Vehicle models.           
+
+Author:     Thor I. Fossen
+"""
 
 import numpy as np
 import math
@@ -13,14 +18,14 @@ def clarke83(U,L,B,T,Cb,R66,xg,T_surge):
     (Yvdot, Yrdot, Nvdot, Nrdot, Yv, Yr, Nv, Nr) was obtained from a PMM  model.
     
     Outputs: 3x3 model matrices M and N in surge, sway and yaw
-          .
-       M nu + N(U) nu = tau,     where N(U) = C(U) + D
+
+       M nu_dot + N(U) nu = tau,     where N(U) = C(U) + D
  
     corresponding to the linear maneuvering model
  
-    (m - Xudot) udot - Xu u                            = (1-t) T
-    (m - Yvdot) vdot + (m - Yrdot)  rdot - Yv v - Yr r = Yd delta
-    (m - Yvdot) vdot + (Iz - Nrdot) rdot - Nv v - Nr r = Nd delta
+    (m - Xudot) u_dot - Xu u                            = (1-t) T
+    (m - Yvdot) v_dot + (m - Yrdot)  r_dot - Yv v - Yr r = Yd delta
+    (m - Yvdot) v_dot + (Iz - Nrdot) r_dot - Nv v - Nr r = Nd delta
 
     Note that the coefficients Yv, Yr, Nv and Nr in the N(U) matrix includes 
     linear damping D and the linearized Coriolis and centripetal matrix C(U).
