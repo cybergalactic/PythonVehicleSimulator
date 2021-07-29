@@ -40,9 +40,9 @@ def DPpolePlacement(e_int,M3,D3,eta3,nu3, \
     x_d,y_d,psi_d,wn,zeta,eta_ref,sampleTime):  
 
     # PID gains based on pole placement
-    Kp = wn**2 * M3
-    Kd = 2 * zeta * wn * M3 - D3
-    Ki = (wn / 10) * Kp
+    Kp = wn @ wn @ M3
+    Kd = 2.0 * zeta @ wn @ M3 - D3
+    Ki = (1.0 / 10.0) * wn @ Kp
         
     # DP control law - setpoint regulation
     e = eta3 - eta_ref
@@ -53,10 +53,10 @@ def DPpolePlacement(e_int,M3,D3,eta3,nu3, \
           -np.matmul( (R.T @ Ki), e_int)
 
     # Low-pass filters, Euler's method
-    T = 5.0 / wn 
-    x_d   += sampleTime  * ( eta_ref[0] - x_d ) / T
-    y_d   += sampleTime  * ( eta_ref[1] - y_d ) / T
-    psi_d +=  sampleTime * ( eta_ref[2] - psi_d ) / T
+    T = 5.0 * np.array([ 1/wn[0][0], 1/wn[1][1], 1/wn[2][2] ]) 
+    x_d   += sampleTime  * ( eta_ref[0] - x_d )  / T[0]
+    y_d   += sampleTime  * ( eta_ref[1] - y_d )  / T[1]
+    psi_d += sampleTime * ( eta_ref[2] - psi_d ) / T[2]
 
     # Integral error, Euler's method
     e_int +=  sampleTime * e
