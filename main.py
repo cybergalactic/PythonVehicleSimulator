@@ -11,7 +11,7 @@ Author:     Thor I. Fossen
 """
 import matplotlib.pyplot as plt
 from functions import plotVehicleStates,plotControls,simulate
-from vehicles import DSRV,otter,shipClarke83,supply
+from vehicles import *
 
 # Simulation parameters: sample time and number of samples
 sampleTime = 0.02
@@ -26,10 +26,10 @@ supply('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)                      DP control sys
 Call constructors without arguments to test step inputs, e.g. DSRV(), otter(), etc. 
 """
 
-#vehicle1 = DSRV('depthAutopilot',60.0) 
-#vehicle1 = otter('headingAutopilot',100.0,0.3,-30.0,200.0) 
-vehicle1 = shipClarke83('headingAutopilot',-20.0,70,8,6,0.7,0.5,-10.0,1e5)
-vehicle2 = supply('DPcontrol',4.0,4.0,30.0,1.0,-20.0)
+# vehicle1 = DSRV('depthAutopilot',60.0) 
+vehicle1 = otter('headingAutopilot',100.0,0.3,-30.0,200.0) 
+vehicle2 = shipClarke83('headingAutopilot',-20.0,70,8,6,0.7,0.5,-10.0,1e5)
+# vehicle2 = supply('DPcontrol',4.0,4.0,100.0,0.5,-20.0)
 
 # Main simulation loop 
 def main():
