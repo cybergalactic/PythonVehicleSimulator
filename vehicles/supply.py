@@ -124,8 +124,8 @@ class supply:
         self.x_d = 0.0                              # setpoints
         self.y_d = 0.0
         self.psi_d = 0.0 
-        self.wn = 0.3                               # PID pole placement
-        self.zeta = 1.0
+        self.wn = np.diag([ 0.3, 0.3, 0.1 ])        # PID pole placement
+        self.zeta = np.diag([ 1.0, 1.0, 1.0 ])
              
 
     def dynamics(self,eta,nu,u_actual,u_control,sampleTime):
