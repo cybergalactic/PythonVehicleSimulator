@@ -7,11 +7,16 @@ Motion Control. 2nd. Edition, Wiley.
 URL: www.fossen.biz/wiley
 
 Author:     Thor I. Fossen
-Date:       25 July 2021
 """
 
 import numpy as np
 import math
+
+# angle = ssa(angle) returns the smallest-signed angle in [ -pi, pi )
+def ssa(angle):
+    angle = (angle + math.pi) % (2 * math.pi) - math.pi
+        
+    return angle 
 
 # x = sat(x,x_min,x_max) saturates a signal x such that x_min <= x <= x_max
 def sat(x, x_min, x_max):
@@ -50,7 +55,6 @@ def Hmtrx(r):
 # R = Rzyx(phi,theta,psi) computes the Euler angle rotation matrix R in SO(3)
 # using the zyx convention
 def Rzyx(phi,theta,psi):
-
     
     cphi = math.cos(phi)
     sphi = math.sin(phi)
@@ -99,7 +103,8 @@ def attitudeEuler(eta,nu,sampleTime):
 
    return eta
 
-# C = m2c(M, nu)
+# C = m2c(M,nu) computes the Coriolis and centripetal matrix C from the
+# mass matrix M and generalized velocity vector nu (Fossen 2021, Ch. 3)
 def m2c(M, nu):
 
     M = 0.5 * (M + M.T)     # systematization of the inertia matrix
@@ -156,7 +161,7 @@ def Hoerner(B,T):
     return CY_2D
 
 # tau_crossflow = crossFlowDrag(L,B,T,nu_r) computes the cross-flow drag 
-# integrals for a marine craft using strip theory. Application:
+# integrals for a marine craft using strip theory. 
 #
 #  M d/dt nu_r + C(nu_r)*nu_r + D*nu_r + g(eta) = tau + tau_crossflow
 def crossFlowDrag(L,B,T,nu_r):
