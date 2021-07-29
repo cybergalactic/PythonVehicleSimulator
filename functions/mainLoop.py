@@ -3,7 +3,6 @@
 Main simulation loop.
 
 Author:     Thor I. Fossen
-Date:       25 July 2021
 """
 
 from .gnc import attitudeEuler
@@ -41,7 +40,9 @@ def simulate(N, sampleTime, vehicle):
         if (vehicle.controlMode == 'depthAutopilot'):
             u_control = vehicle.depthAutopilot(eta,nu,sampleTime)
         elif (vehicle.controlMode == 'headingAutopilot'):
-            u_control = vehicle.headingAutopilot(eta,nu,sampleTime)            
+            u_control = vehicle.headingAutopilot(eta,nu,sampleTime)   
+        elif (vehicle.controlMode == 'DPcontrol'):
+            u_control = vehicle.DPcontrol(eta,nu,sampleTime)                   
         elif (vehicle.controlMode == 'stepInput'):
             u_control = vehicle.stepInput(t)          
         
