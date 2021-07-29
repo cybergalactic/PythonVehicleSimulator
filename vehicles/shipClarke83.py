@@ -7,23 +7,29 @@ shipClarke83.py:
    Clarke (1983.)  
        
    shipClarke83()                           
-       Step input, rudder aangle     
-   shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_current,beta_c,tau_X)                 
-       Heading autopilot desired yaw angle (deg)
+       Step input, rudder angle     
+   shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_current,beta_c,tau_X)
+        psi_d: desired yaw angle (deg)
+        L: ship length (m)
+        B: ship beam (m)
+        T: ship draft (m)
+        Cb: block coefficient (-)
+        V_current: current speed (m/s)
+        beta_c: current direction (deg)
+        tau_X: surge force, pilot input (N)                    
 
-   Methods:
+Methods:
         
-   [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime )returns nu[k+1] 
-       nu[k+1] and u_actual[k+1] using Euler's method. The control input 
-       u_actual = delta_r (rad) is for the ship rudder.
+[nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime ) returns 
+    nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
 
-   u = headingAutopilot(eta,nu,sampleTime) 
-       PID controller for automatic depth control based on pole placement and 
-       reference feedforward.
+u_control = delta_r (rad) is for the ship rudder.
+
+u = headingAutopilot(eta,nu,sampleTime) 
+    PID controller for automatic heading control based on pole placement.
        
-   u = stepInput(t) generates rudder step inputs.   
+u = stepInput(t) generates rudder step inputs.   
        
----
 References: 
   D. Clarke, P. Gedling and G. Hine. (1983). The application of manoeuvring 
       criteria in hull design using linear thory. Trans. R. lnsm nav. Archit.
@@ -32,7 +38,6 @@ References:
      Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
-Date:       25 July 2021
 """
 import numpy as np
 import math
@@ -42,16 +47,16 @@ from functions.models import clarke83
 # Class Vehicle
 class shipClarke83:
     """
-    shipClarke83()                                
-        Step input, rudder angle      
-    shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_current,beta_c,tau_X)                
-        Heading autopilot desired yaw angle (deg)
+    shipClarke83()                         
+        Rudder angle step inputs   
+    shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_c,beta_c,tau_X)                
+        Heading autopilot
     """        
-    def __init__(self, controlSystem = 'stepInput', r = 0, L = 50, B = 7, 
-                 T = 5, Cb = 0.7, V_current = 0, beta_current = 0,tau_X = 1e5):
+    def __init__(self, controlSystem = 'stepInput', r = 0, L = 50.0, B = 7.0, 
+                 T = 5.0, Cb = 0.7, V_current = 0, beta_current = 0,tau_X = 1e5):
                             
         if (controlSystem == 'headingAutopilot'):
-            self.controlDescription = 'Heading autopilot, setpoint psi_d = ' \
+            self.controlDescription = 'Heading autopilot, psi_d = ' \
                 + str(r) + ' (deg)' 
              
         else:  
@@ -86,7 +91,7 @@ class shipClarke83:
         self.dimU = len(self.controls)      
 
         # Heading autopilot
-        self.z_int = 0           # integral state   
+        self.e_int = 0           # integral state   
         self.wn = 0.5            # PID pole placement
         self.zeta = 1
         
@@ -189,7 +194,7 @@ class shipClarke83:
 
     def stepInput(self,t):
         """
-        delta_r = stepInput(t) generates rudder step inputs.
+        delta_c = stepInput(t) generates rudder step inputs.
         """    
         delta_c = 10 * (math.pi/180)    
         if t > 50:
@@ -202,11 +207,11 @@ class shipClarke83:
 
     def headingAutopilot(self,eta,nu,sampleTime):
         """
-        tau_N = headingAutopilot(eta,nu,sampleTime) is a PID controller 
+        delta_c = headingAutopilot(eta,nu,sampleTime) is a PID controller 
         for automatic heading control based on pole placement.
         
         tau_N = m * a_d + d * r_d 
-              - Kp * ( ssa( psi-psi_d ) + Td * (r - r_d) + (1/Ti) * z )        
+              - Kp * ( ssa( psi-psi_d ) + Td * (r - r_d) + (1/Ti) * e_int )        
         """                  
 
         r_max = 1.0 * math.pi / 180   # maximum yaw rate 
@@ -227,9 +232,9 @@ class shipClarke83:
         k = 0
 
         # PID feedback controller with 3rd-order reference model               
-        [tau_N, self.z_int, self.psi_d, self.r_d, self.a_d] = \
-            PIDpolePlacement( e_psi, e_r, self.z_int,self.psi_d, self.r_d, self.a_d, \
-            m, d, k, wn_d, zeta_d, wn, zeta, psi_ref, r_max, sampleTime )
+        [tau_N, self.e_int, self.psi_d, self.r_d, self.a_d] = PIDpolePlacement( \
+                self.e_int, e_psi, e_r,self.psi_d, self.r_d, \
+                self.a_d, m, d, k, wn_d, zeta_d, wn, zeta, psi_ref, r_max, sampleTime )
         
         # Control allocation: tau_N = Yd * delta
         delta_c = tau_N / self.Nd                       # rudder command
