@@ -7,22 +7,24 @@ DSRV.py:
     nu  = [ 0 0 w 0 q 0]' where w is the heave velocity (m/s) and q is the
     pitch rate (rad/s).  The constructors are:
         
-    DSRV()                      Step input, rudder angel
-    DSRV('deptAutopilot',z_d)   Depth autopilot, desired depth (m)
-
-    Methods:   
+    DSRV()                      
+        Step input, rudder angel
+    DSRV('deptAutopilot',z_d)  
+         Depth autopilot with option:
+            z_d: desired depth (m)
         
-   [nu, u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) returns
-       nu[k+1] and u_actual[k+1] using Euler's method. The control input 
-       u_actual = delta_s (rad) is for the DSRV stern plane.
+Methods:   
+        
+[nu, u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) returns
+       nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
+       
+       u_control = delta_s (rad):  DSRV stern plane.
 
-   u = depthAutopilot(eta,nu,sampleTime) 
-       PID controller for automatic depth control based on pole placement and 
-       reference feedforward.
+u = depthAutopilot(eta,nu,sampleTime) 
+    PID controller for automatic heading control based on pole placement.
        
-   u = stepInput(t) generates stern plane step inputs.   
+u = stepInput(t) generates stern plane step inputs.   
        
----
 References: 
   A. J. Healey (1992). Marine Vehicle Dynamics Lecture Notes and 
     Problem Sets, Naval Postgraduate School (NPS), Monterey, CA.
@@ -30,7 +32,6 @@ References:
      Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
-Date:       25 July 2021
 """
 import numpy as np
 import math
@@ -39,13 +40,13 @@ from functions.control import PIDpolePlacement
 # Class Vehicle
 class DSRV:
     """
-    DSRV()                      Step input, rudder angel
+    DSRV()                      Step input, rudder angle
     DSRV('deptAutopilot',z_d)   Depth autopilot, desired depth (m)
     """        
     def __init__(self, controlSystem = 'stepInput', r = 0):
                                   
         if (controlSystem == 'depthAutopilot'):
-            self.controlDescription = 'Depth autopilot, setpoint z_d = ' + str(r) + ' (m)'
+            self.controlDescription = 'Depth autopilot, z_d = ' + str(r) + ' (m)'
              
         else:  
             self.controlDescription = "Step input for delta_s" 
@@ -86,9 +87,9 @@ class DSRV:
         self.Mdelta = -0.012797
         self.Zdelta = 0.027695
         
-        # Depth autopilot
-        self.z_int = 0           # integral state   
-        self.wn = 1              # PID pole placement
+        # Depth autopilot  
+        self.e_int = 0.0         # integral state, initial value
+        self.wn = 1              # PID pole placement parameters
         self.zeta = 1
         
         # Reference model
@@ -183,8 +184,9 @@ class DSRV:
         k = 0
 
         # PID feedback controller with 3rd-order reference model
-        [delta_c, self.z_int, self.z_d, self.w_d, self.a_d] = \
-            PIDpolePlacement( e_z, e_w, self.z_int,self.z_d, self.w_d, self.a_d, \
+        [delta_c, self.e_int, self.z_d, self.w_d, self.a_d] = PIDpolePlacement( \
+            self.e_int, e_z, e_w, \
+            self.z_d, self.w_d, self.a_d, \
             m, d, k, wn_d, zeta_d, wn, zeta, r, w_max, sampleTime )
     
         u_control = np.array([delta_c],float)   
