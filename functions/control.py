@@ -2,36 +2,63 @@
 """
 Control methods.
 
-u = PIDpolePlacement(_x,e_v,e_int,x_d,v_d,a_d,m,d,k,wn_d,zeta_d,wn,zeta,r,v_max,sampleTime)
-    PID control law based on pole placement and reference feedforward.
-
----
 Reference: T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-Motion Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley
+Motion Control. 2nd. Edition, Wiley. 
+URL: www.fossen.biz/wiley
 
 Author:     Thor I. Fossen
-Date:       25 July 2021
-Revisions: 
 """
 
 import numpy as np
 import math
 from functions.guidance import refModel3
+from functions.gnc import ssa, Rzyx
 
-#  u = PIDpolePlacement(_x,e_v,e_int,x_d,v_d,a_d,m,d,k,wn_d,zeta_d,wn,zeta,r,v_max,sampleTime)
-def PIDpolePlacement(e_x,e_v,e_int,x_d,v_d,a_d,m,d,k,wn_d,zeta_d,wn,zeta,r,v_max,sampleTime):
+# SISO PID pole placement
+def PIDpolePlacement(e_int,e_x,e_v, \
+    x_d,v_d,a_d,m,d,k,wn_d,zeta_d,wn,zeta,r,v_max,sampleTime):    
+      
     # PID gains based on pole placement
     Kp = m * wn**2 - k
     Kd = m * 2 * zeta * wn - d
     Ki = (wn/10) * Kp
-        
+
     # PID control law
     u = -Kp * e_x - Kd * e_v - Ki * e_int
 
-    # Forward Euler integration
-    e_int = e_int + sampleTime * e_x
-        
+    # Integral error, Euler's method
+    e_int += sampleTime * e_x
+    
     # 3rd-order reference model for smooth position, velocity and acceleration
     [x_d, v_d, a_d] = refModel3(x_d, v_d, a_d, r, wn_d, zeta_d, v_max, sampleTime)
 
-    return u, e_int, x_d, v_d, a_d    
+    return u, e_int, x_d, v_d, a_d  
+
+
+# MIMO nonlinear PID pole placement 
+def DPpolePlacement(e_int,M3,D3,eta3,nu3, \
+    x_d,y_d,psi_d,wn,zeta,eta_ref,sampleTime):  
+
+    # PID gains based on pole placement
+    Kp = wn**2 * M3
+    Kd = 2 * zeta * wn * M3 - D3
+    Ki = (wn / 10) * Kp
+        
+    # DP control law - setpoint regulation
+    e = eta3 - eta_ref
+    e[2] = ssa( e[2] )
+    R = Rzyx( 0.0, 0.0, eta3[2] )
+    tau = -np.matmul( (R.T @ Kp), e) \
+          -np.matmul( (R.T @ Kd @ R), nu3) \
+          -np.matmul( (R.T @ Ki), e_int)
+
+    # Low-pass filters, Euler's method
+    T = 5.0 / wn 
+    x_d   += sampleTime  * ( eta_ref[0] - x_d ) / T
+    y_d   += sampleTime  * ( eta_ref[1] - y_d ) / T
+    psi_d +=  sampleTime * ( eta_ref[2] - psi_d ) / T
+
+    # Integral error, Euler's method
+    e_int +=  sampleTime * e
+        
+    return tau, e_int, x_d, y_d, psi_d
