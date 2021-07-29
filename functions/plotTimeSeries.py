@@ -6,12 +6,12 @@ plotVehicleStates(simTime, simData, figNo)
 plotControls(simTime, simData))
 
 Author:     Thor I. Fossen
-Date:       25 July 2021
 """
 
 import math
 import matplotlib.pyplot as plt
 import numpy as np
+from functions.gnc import ssa 
 
 legendSize = 10                     # legend size
 figSize1 = [30, 20]                 # figure1 size in cm
@@ -34,9 +34,9 @@ def plotVehicleStates(simTime, simData, figNo):
     x = simData[:,0]
     y = simData[:,1]
     z = simData[:,2]
-    phi   = R2D(simData[:,3])    
-    theta = R2D(simData[:,4])  
-    psi   = R2D(simData[:,5])  
+    phi   = R2D(ssa(simData[:,3]))   
+    theta = R2D(ssa(simData[:,4]))  
+    psi   = R2D(ssa(simData[:,5]))  
     u = simData[:,6]    
     v = simData[:,7]  
     w = simData[:,8]  
@@ -47,10 +47,10 @@ def plotVehicleStates(simTime, simData, figNo):
     # Speed
     U = np.sqrt( np.multiply(u,u) + np.multiply(v,v) + np.multiply(w,w) )
      
-    beta_c  = R2D(np.arctan2(v,u))         # crab angle
-    alpha_c = R2D(np.arctan2(w,u))         # flight path angle
-    chi     = psi + beta_c                 # course angle
-    
+    beta_c  = R2D(ssa(np.arctan2(v,u)))          # crab angle
+    alpha_c = R2D(ssa(np.arctan2(w,u)))          # flight path angle
+    chi = R2D(ssa(simData[:,5]+np.arctan2(v,u))) # course angle; chi = psi + beta_c 
+
     # Plots
     plt.figure(figNo,figsize=(cm2inch(figSize1[0]),cm2inch(figSize1[1])))
     plt.grid()
