@@ -25,8 +25,11 @@ Methods:
           n3 (right main propeller) 
           n4 (left main propeller) ]
 
+u_alloc = controlAllocation(tau)
+    Control allocation based on the pseudoinverse                 
+
 n = DPcontrol(eta,nu,sampleTime)
-    Nonlinear PID controller for DP based on pole placement.
+    Nonlinear PID controller for DP based on pole placement.    
 
 n = stepInput(t) generates propellers step inputs.
     
