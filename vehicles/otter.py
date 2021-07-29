@@ -257,7 +257,7 @@ class otter:
        
         nu_dot = np.matmul(self.Minv, sum_tau)   # USV dynamics
         n_dot = (u_control - n) / self.T_n       # propeller dynamics
-        trim_dot = self.trim_setpoint - self.trim_moment # trim dynamics
+        trim_dot = (self.trim_setpoint - self.trim_moment) / 5 # trim dynamics
 
         # Forward Euler integration
         nu = nu + sampleTime * nu_dot
@@ -307,8 +307,8 @@ class otter:
 
         m = 41.4             # moment of inertia in yaw including added mass
         T = 1
-        K = 0   # T/m
-        d = 0   # 1/K                 
+        K = T/m   
+        d = 1/K   
         k = 0
 
         # PID feedback controller with 3rd-order reference model
