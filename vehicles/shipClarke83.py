@@ -2,8 +2,8 @@
 """
 shipClarke83.py:  
 
-   Class for a generic ship parametrized using the main dimensions L, B, and 
-   T. The ship model is based on the linear maneuvering coefficients by 
+   Class for a generic ship parametrized using the main dimensions L, B, and T.
+   The ship model is based on the linear maneuvering coefficients by 
    Clarke (1983).  
        
    shipClarke83()                           
@@ -31,9 +31,9 @@ u = headingAutopilot(eta,nu,sampleTime)
 u = stepInput(t) generates rudder step inputs.   
        
 References: 
-  D. Clarke, P. Gedling and G. Hine. (1983). The application of manoeuvring 
-      criteria in hull design using linear thory. Trans. R. lnsm nav. Archit.
-      125, 45-68.
+  D. Clarke, P. Gedling and G. Hine (1983). The Application of Manoeuvring 
+      Criteria in Hull Design using Linear Theory. Transactions of the Royal 
+      Institution of Naval Architects (RINA), 125, pp. 45-68.
   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
      Control. 2nd. Edition, Wiley. 
      URL: www.fossen.biz/wiley            
@@ -50,11 +50,11 @@ class shipClarke83:
     """
     shipClarke83()                         
         Rudder angle step inputs   
-    shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_c,beta_c,tau_X)                
+    shipClarke83('headingAutopilot', psi_d, L, B, T, Cb, V_c, beta_c, tau_X)                
         Heading autopilot
     """        
     def __init__(self, controlSystem = 'stepInput', r = 0, L = 50.0, B = 7.0, 
-                 T = 5.0, Cb = 0.7, V_current = 0, beta_current = 0,tau_X = 1e5):
+            T = 5.0, Cb = 0.7, V_current = 0, beta_current = 0,tau_X = 1e5):
                             
         if (controlSystem == 'headingAutopilot'):
             self.controlDescription = 'Heading autopilot, psi_d = ' \
@@ -80,8 +80,8 @@ class shipClarke83:
         self.tau_X = tau_X      # surge force (N), pilot input
         self.deltaMax = 30      # max rudder angle (deg)   
         self.T_delta = 1.0      # rudder time constants (s)      
-        self.nu  = np.array([2, 0, 0, 0, 0, 0], float )    # velocity vector    
-        self.u_actual = np.array([0],float)                # control input vector
+        self.nu  = np.array([2, 0, 0, 0, 0, 0], float )  # velocity vector    
+        self.u_actual = np.array([0],float)              # control input vector
 
         if self.L > 100:
             self.R66 = 0.27 * self.L  # approx. radius of gyration in yaw (m)
@@ -111,8 +111,8 @@ class shipClarke83:
         self.k_PID = 0   
 
         # Rudder yaw moment coefficient (Fossen 2021, Chapter 9.5.1)
-        b = 0.7 * self.T                                   # rudder height
-        AR = b**2 / self.Lambda                            # aspect ratio: Lamdba = b**2/AR 
+        b = 0.7 * self.T                          # rudder height
+        AR = b**2 / self.Lambda                   # aspect ratio: Lamdba = b**2/AR 
         CN = 6.13 * self.Lambda  / ( self.Lambda  + 2.25 ) # normal coefficient
         t_R = 1 - 0.28 * self.Cb - 0.55
         a_H = 0.4
@@ -143,9 +143,9 @@ class shipClarke83:
         delta   = u_actual[0]
         
         # Rudder forces and moment (Fossen 2021, Chapter 9.5.1)
-        b = 0.7 * self.T                                   # rudder height
-        AR = b**2 / self.Lambda                            # aspect ratio: Lamdba = b**2/AR 
-        CN = 6.13 * self.Lambda  / ( self.Lambda  + 2.25 ) # normal coefficient
+        b = 0.7 * self.T                        # rudder height
+        AR = b**2 / self.Lambda                 # aspect ratio: Lamdba = b**2/AR 
+        CN = 6.13 * self.Lambda  / ( self.Lambda  + 2.25 )  # normal coefficient
         t_R = 1 - 0.28 * self.Cb - 0.55
         a_H = 0.4
         x_R = -0.45 * self.L
@@ -162,7 +162,7 @@ class shipClarke83:
         tau1 =  ( 1 -  t_deduction ) * T - Xdd * math.sin( delta_R )**2 
         tau2 = -Yd * math.sin( 2 * delta_R ) 
         tau6 = -Nd * math.sin( 2 * delta_R ) 
-        tau  = np.array([tau1,tau2,tau6],float) 
+        tau  = np.array( [ tau1, tau2, tau6 ],float) 
         
         # Linear maneuvering model
         T_surge = self.L        # approx. time constant in surge (s)
@@ -171,15 +171,15 @@ class shipClarke83:
         # 3-DOF ship model
         [M,N] = clarke83(U_r,self.L, self.B, self.T,self.Cb,self.R66,xg,T_surge)
         Minv = np.linalg.inv(M)
-        nu3 = np.array( [ nu_r[0],nu_r[1],nu_r[5] ])         
+        nu3 = np.array( [ nu_r[0], nu_r[1], nu_r[5] ])         
         nu3_dot = np.matmul( Minv, tau - np.matmul(N,nu3) ) 
         
         # 6-DOF ship model
         nu_dot = np.array( [ nu3_dot[0],nu3_dot[1],0,0,0,nu3_dot[2] ])  
 
         # Rudder angle saturation
-        if ( abs(delta) >= self.deltaMax * math.pi/180 ):
-            delta = np.sign(delta) * self.deltaMax * math.pi/180
+        if ( abs(delta) >= self.deltaMax * math.pi / 180 ):
+            delta = np.sign(delta) * self.deltaMax * math.pi / 180
         
         # Rudder dynamics
         delta_dot = (delta_c - delta) / self.T_delta    
@@ -233,9 +233,10 @@ class shipClarke83:
         k = 0
 
         # PID feedback controller with 3rd-order reference model               
-        [tau_N, self.e_int, self.psi_d, self.r_d, self.a_d] = PIDpolePlacement( \
+        [tau_N, self.e_int, self.psi_d, self.r_d, self.a_d] = PIDpolePlacement(\
                 self.e_int, e_psi, e_r,self.psi_d, self.r_d, \
-                self.a_d, m, d, k, wn_d, zeta_d, wn, zeta, psi_ref, r_max, sampleTime )
+                self.a_d, m, d, k, wn_d, zeta_d, wn, zeta, psi_ref, r_max, \
+                sampleTime )
         
         # Control allocation: tau_N = Yd * delta
         delta_c = tau_N / self.Nd                       # rudder command
