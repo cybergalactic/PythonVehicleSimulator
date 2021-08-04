@@ -32,7 +32,8 @@ u = stepInput(t) generates propeller step inputs.
     
 References: 
   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-     Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
+     Control. 2nd. Edition, Wiley. 
+     URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
 """
@@ -51,8 +52,8 @@ class otter:
                  r = 0, V_current = 0, beta_current = 0, tau_X = 120):         
                 
         if (controlSystem == 'headingAutopilot'):
-            self.controlDescription = 'Heading autopilot, psi_d = ' + str(r) + ' (deg)'
-             
+            self.controlDescription = 'Heading autopilot, psi_d = ' \
+            + str(r) + ' (deg)'       
         else:  
             self.controlDescription = 'Step inputs for n1 and n2'
             controlSystem = 'stepInput'  
@@ -68,7 +69,7 @@ class otter:
         self.L = 2.0                            # Length (m)
         self.B = 1.08                           # beam (m)           
         self.nu = np.array([0, 0, 0, 0, 0, 0], float) # velocity vector    
-        self.u_actual = np.array([0, 0], float)       # propeller revolution states
+        self.u_actual = np.array([0, 0], float)   # propeller revolution states
         self.name = "Otter USV"     
         
         self.controls = [ 
@@ -77,36 +78,36 @@ class otter:
         self.dimU = len(self.controls)  
 
         # Constants   
-        g   = 9.81                              # acceleration of gravity (m/s^2)
-        rho = 1025                              # density of water
+        g   = 9.81                            # acceleration of gravity (m/s^2)
+        rho = 1025                            # density of water
         
-        m = 55.0                                # mass (kg)
-        mp = 25.0                               # Payload (kg) 
+        m = 55.0                              # mass (kg)
+        mp = 25.0                             # Payload (kg) 
         self.m_total = m + mp
-        rp = np.array([0,   0, -0.35],float)    # location of payload (m)        
-        rg = np.array([0.2, 0, -0.2],float)     # CG for hull only (m)  
-        rg = (m*rg + mp*rp) / (m + mp)    # CG location corrected for payload 
+        rp = np.array([0,   0, -0.35],float)  # location of payload (m)        
+        rg = np.array([0.2, 0, -0.2],float)   # CG for hull only (m)  
+        rg = (m*rg + mp*rp) / (m + mp)        # CG corrected for payload 
         self.S_rg = Smtrx(rg) 
         self.H_rg = Hmtrx(rg)
         self.S_rp = Smtrx(rp)        
 
-        R44 = 0.4 * self.B                           # radii of gyration (m)
+        R44 = 0.4 * self.B                    # radii of gyration (m)
         R55 = 0.25 * self.L
         R66 = 0.25 * self.L
-        T_yaw = 1.0                                  # time constant in yaw (s)
-        Umax = 6 * 0.5144                            # max forward speed (m/s)
+        T_yaw = 1.0                            # time constant in yaw (s)
+        Umax = 6 * 0.5144                     # max forward speed (m/s)
 
         # Data for one pontoon
-        self.B_pont  = 0.25     # beam of one pontoon (m)
-        y_pont  = 0.395         # distance from centerline to waterline area center (m)
-        Cw_pont = 0.75          # waterline area coefficient (-)
-        Cb_pont = 0.4           # block coefficient, computed from m = 55 kg
+        self.B_pont  = 0.25  # beam of one pontoon (m)
+        y_pont  = 0.395      # distance from centerline to waterline centroid (m)
+        Cw_pont = 0.75       # waterline area coefficient (-)
+        Cb_pont = 0.4        # block coefficient, computed from m = 55 kg
         
         # Inertia dyadic, volume displacement and draft
         nabla = (m + mp) / rho                                    # volume
         self.T = nabla / (2 * Cb_pont * self.B_pont*self.L)       # draft      
         Ig_CG = m * np.diag( np.array( [R44**2, R55**2, R66**2]) )
-        self.Ig = Ig_CG - m * self.S_rg @ self.S_rg - mp *  self.S_rp @  self.S_rp  
+        self.Ig = Ig_CG - m * self.S_rg @ self.S_rg - mp * self.S_rp @ self.S_rp  
 
         # Experimental propeller data including lever arms
         self.l1 = -y_pont                    # lever arm, left propeller (m)
@@ -116,14 +117,14 @@ class otter:
         self.n_max =  math.sqrt((0.5*24.4 * g)/self.k_pos) # max. prop. rev.
         self.n_min = -math.sqrt((0.5*13.6 * g)/self.k_neg) # min. prop. rev. 
 
-        # MRB_CG = [ (m+mp) * I3  O3
+        # MRB_CG = [ (m+mp) * I3  O3      (Fossen 2021, Chapter 3)
         #               O3       Ig ]        
         MRB_CG = np.zeros( (6,6) )
         MRB_CG[0:3, 0:3] = (m + mp) * np.identity(3) 
         MRB_CG[3:6, 3:6] = self.Ig
         MRB = self.H_rg.T @ MRB_CG @ self.H_rg
 
-        # Hydrodynamic added mass (best practice)
+        # Hydrodynamic added mass (best practice)  
         Xudot = -0.1 * m   
         Yvdot = -1.5 * m
         Zwdot = -1.0 * m
@@ -156,7 +157,7 @@ class otter:
         G55 = rho * g * nabla * GM_L
         G_CF = np.diag([0, 0, G33, G44, G55, 0])  # spring stiff. matrix in CF
         LCF = -0.2
-        H = Hmtrx(np.array([LCF, 0.0, 0.0])) # transform G_CF from the CF to the CO 
+        H = Hmtrx(np.array([LCF, 0.0, 0.0]))    # transform G_CF from CF to CO 
         self.G = H.T @ G_CF @ H
 
         # Natural frequencies
@@ -165,12 +166,12 @@ class otter:
         w5 = math.sqrt( G55 / self.M[4,4] )
 
         # Linear damping terms (hydrodynamic derivatives)
-        Xu = -24.4 * g / Umax        # specified using the maximum speed        
+        Xu = -24.4 * g / Umax             # specified using the maximum speed        
         Yv = 0
         Zw = -2 * 0.3 * w3 * self.M[2,2]  # specified using relative damping
         Kp = -2 * 0.2 * w4 * self.M[3,3]
         Mq = -2 * 0.4 * w5 * self.M[4,4]
-        Nr = -self.M[5,5] / T_yaw        #specified by yaw time constant T_yaw       
+        Nr = -self.M[5,5] / T_yaw         #specified by the time constant T_yaw       
         
         self.D = -np.diag([Xu, Yv, Zw, Kp, Mq, Nr])   
   
@@ -191,31 +192,31 @@ class otter:
         self.zeta = 0.8
         
         # Reference model
-        self.psi_d = 0            # angle, angular rate and angular acc. states
+        self.psi_d = 0           # angle, angular rate and angular acc. states
         self.r_d = 0
         self.a_d = 0
-        self.wn_d = self.wn / 5
-        self.zeta_d = 1        
+        self.wn_d = self.wn / 5  # desired natural frequency in yaw
+        self.zeta_d = 1          # desired relative damping ratio
         
 
     def dynamics(self,eta,nu,u_actual,u_control,sampleTime):
         """
-        [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) integrates the  
-        Otter USV equations of motion using Euler's method.
+        [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) integrates 
+        the Otter USV equations of motion using Euler's method.
         """   
 
         # Input vector
         n = np.array( [u_actual[0], u_actual[1]] )  
 
         # Current velocities
-        u_c = self.V_c * math.cos(self.beta_c - eta[5])      # current surge velocity
-        v_c = self.V_c * math.sin(self.beta_c - eta[5])      # current sway velocity
+        u_c = self.V_c * math.cos(self.beta_c - eta[5])  # current surge vel.
+        v_c = self.V_c * math.sin(self.beta_c - eta[5])  # current sway vel.
 
-        nu_c = np.array([u_c,v_c,0,0,0,0],float)        # current velocity vector
-        nu_r = nu - nu_c                                # relative velocity vector
+        nu_c = np.array([u_c,v_c,0,0,0,0],float)     # current velocity vector
+        nu_r = nu - nu_c                             # relative velocity vector
         
-        # Rigid body and added mass Coriolis and centripetal matrices
-        # CRB_CG = [ (m+mp) * Smtrx(nu2)          O3
+        # Rigid body and added mass Coriolis and centripetal matrices 
+        # CRB_CG = [ (m+mp) * Smtrx(nu2)          O3   (Fossen 2021, Chapter 6)
         #              O3                   -Smtrx(Ig*nu2)  ] 
         CRB_CG = np.zeros( (6,6) )
         CRB_CG[0:3, 0:3] =  self.m_total * Smtrx(nu[3:6])
@@ -224,7 +225,7 @@ class otter:
  
         CA = m2c(self.MA, nu_r)
         CA[5,0] = 0 # assume that the Munk moment in yaw can be neglected
-        CA[5,1] = 0 # these terms, if nonzero, must be balanced by adding nonlinear damping
+        CA[5,1] = 0 # if nonzero, must be balanced by adding nonlinear damping
 
         C = CRB + CA      
         
@@ -235,7 +236,7 @@ class otter:
         thrust = np.zeros(2)
         for i in range(0,2):
             
-            n[i] = sat(n[i],self.n_min,self.n_max)  # saturation, physical limits
+            n[i] = sat(n[i],self.n_min,self.n_max) # saturation, physical limits
 
             if n[i] > 0:                                    # positive thrust              
                 thrust[i] = self.k_pos * n[i] * abs(n[i])  
@@ -259,7 +260,7 @@ class otter:
         n_dot = (u_control - n) / self.T_n       # propeller dynamics
         trim_dot = (self.trim_setpoint - self.trim_moment) / 5 # trim dynamics
 
-        # Forward Euler integration
+        # Forward Euler integration [k+1]
         nu = nu + sampleTime * nu_dot
         n  = n  + sampleTime * n_dot
         self.trim_moment = self.trim_moment + sampleTime * trim_dot
@@ -330,10 +331,10 @@ class otter:
         n1 = 100        # rad/s
         n2 = 80
         
-        if t > 30:
+        if (t > 30 and t < 100):
             n1 = 80
             n2 = 120
-        if t > 70:
+        else: 
             n1 = 0
             n2 = 0
   
