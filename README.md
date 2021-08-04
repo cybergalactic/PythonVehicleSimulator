@@ -6,12 +6,12 @@ The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems S
     
 is used to define multiple vehicle objects for real-time simulation. The python modules are located under the catalogues: 
 
-    /vehicles/                 Vehicle classes and methods:  
+    /vehicles/                 Vehicle classes:  
         DSRV.py                     - Deep submergence rescue vehicle (DSRV), L = 5.0 m
-        otter.py                    - Otter unmanned surface vehicle (USV), L = 1.2 m
+        otter.py                    - Otter unmanned surface vehicle (USV), L = 2.0 m
         shipClarke83.py             - Ship, linear maneuvering model specified by L, B and T using the Clarke (1983) formulas
         supply.py                   - Offshore supply vessel, L = 76.2 (m)
-    /functions/                Functions used my the main program:
+    /functions/                Functions used by the main program:
         control.py                  - feedback control systems
         gnc.py                      - generic GNC functions
         guidance.py                 - guidance functions        
