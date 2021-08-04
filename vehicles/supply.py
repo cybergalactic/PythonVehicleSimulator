@@ -153,7 +153,7 @@ class supply:
         tau3 = np.matmul(self.B, n_squared)
 
         # 3-DOF dynamics
-        nu3_r = np.array([ nu_r[0], nu_r[1], nu_r[2] ])         
+        nu3_r = np.array([ nu_r[0], nu_r[1], nu_r[5] ])         
         nu3_dot = np.matmul( self.M3inv, tau3 - np.matmul(self.D3, nu3_r) ) 
 
         # 6-DOF ship model
