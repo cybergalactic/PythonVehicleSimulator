@@ -4,7 +4,7 @@ shipClarke83.py:
 
    Class for a generic ship parametrized using the main dimensions L, B, and 
    T. The ship model is based on the linear maneuvering coefficients by 
-   Clarke (1983.)  
+   Clarke (1983).  
        
    shipClarke83()                           
        Step input, rudder angle     
@@ -35,7 +35,8 @@ References:
       criteria in hull design using linear thory. Trans. R. lnsm nav. Archit.
       125, 45-68.
   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-     Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
+     Control. 2nd. Edition, Wiley. 
+     URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
 """
@@ -99,8 +100,8 @@ class shipClarke83:
         self.psi_d = 0           # angle, angular rate and angular acc. states
         self.r_d = 0
         self.a_d = 0
-        self.wn_d = self.wn / 5
-        self.zeta_d = 1       
+        self.wn_d = self.wn / 5  # desired natural frequency in yaw
+        self.zeta_d = 1          # desired relative damping ratio in yaw
 
         # controller parameters m, d and k
         U0 = 3     # cruise speed
@@ -170,7 +171,7 @@ class shipClarke83:
         # 3-DOF ship model
         [M,N] = clarke83(U_r,self.L, self.B, self.T,self.Cb,self.R66,xg,T_surge)
         Minv = np.linalg.inv(M)
-        nu3 = np.array( [ nu_r[0],nu_r[1],nu_r[2] ])         
+        nu3 = np.array( [ nu_r[0],nu_r[1],nu_r[5] ])         
         nu3_dot = np.matmul( Minv, tau - np.matmul(N,nu3) ) 
         
         # 6-DOF ship model
