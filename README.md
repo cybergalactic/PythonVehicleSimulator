@@ -9,6 +9,7 @@ is used to define multiple vehicle objects for real-time simulation. The python 
     /vehicles/                 Vehicle classes:  
         DSRV.py                     - Deep submergence rescue vehicle (DSRV), L = 5.0 m
         otter.py                    - Otter unmanned surface vehicle (USV), L = 2.0 m
+        semisub.py                  - Semisubmersible, L = 84.5 m
         shipClarke83.py             - Ship, linear maneuvering model specified by L, B and T using the Clarke (1983) formulas
         supply.py                   - Offshore supply vessel, L = 76.2 (m)
     /functions/                Functions used by the main program:
