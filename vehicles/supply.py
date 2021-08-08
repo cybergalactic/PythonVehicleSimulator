@@ -20,10 +20,10 @@ Methods:
     The control inputs are:
 
     u_control = n  (RPM)
-    n = [ n1 (tunnel thruster)
-          n2 (tunnel thruster) 
-          n3 (right main propeller) 
-          n4 (left main propeller) ]
+    n = [ #1 Bow thruster (RPM) 
+          #2 Bow thruster (RPM)
+          #3 Right main propeller (RPM)
+          #4 Left main propeller (RPM) ]
 
 u_alloc = controlAllocation(tau)
     Control allocation based on the pseudoinverse                 
@@ -71,27 +71,27 @@ class supply:
         self.controlMode = controlSystem
                     
         # Initialize the supply vessel model 
-        # - Two tunnel thrusters in the bow, no. 1 and 2
-        # - Two main propellers aft, no. 3 and 4
-        self.T_n = 1.0                                 # prop. rev. time constant (s)          
-        self.L = 76.2                                  # Length (m)   
-        self.n_max = np.array([ 
-            250, 250, 160, 160 ],float)                # RPM saturation limits (N)                           
+        self.L = 76.2                           # Length (m)   
+        self.T_n = 1.0                          # prop. rev. time constant (s)          
+        self.n_max = np.array([                 # RPM saturation limits (N) 
+            250, 250, 160, 160 ],float)                                     
         self.nu = np.array([0, 0, 0, 0, 0, 0], float)  # velocity vector    
         self.u_actual = np.array([0, 0, 0, 0], float)  # RPM inputs
         self.name = "Offshore supply vessel"     
         
+        # Two tunnel thrusters in the bow, no. 1 and 2
+        # Two main propellers aft, no. 3 and 4        
         self.controls = [ 
-            'Bow thruster 1 (RPM)', 
-            'Bow thruster 2 (RPM)',
-            'Right main propeller (RPM)',
-            'Left main propeller (RPM)' ]
+            '#1 Bow thruster (RPM)', 
+            '#2 Bow thruster (RPM)',
+            '#3 Right main propeller (RPM)',
+            '#4 Left main propeller (RPM)' ]
         self.dimU = len(self.controls)  
 
         # Constants   
-        g   = 9.81                              # acceleration of gravity (m/s^2)
-        rho = 1025                              # density of water        
-        m = 6000.0e3                            # mass (kg)
+        g   = 9.81                   # acceleration of gravity (m/s^2)
+        rho = 1025                   # density of water        
+        m = 6000.0e3                 # mass (kg)
 
         # Thrust coefficient and configuration matrices (Fossen 2021, Ch. 11.2)
         K = np.diag( [ 2.4, 2.4, 17.6, 17.6 ])
@@ -135,8 +135,8 @@ class supply:
         """   
 
         # Input vector
-        n = np.array([ u_actual[0], u_actual[1], u_actual[2], u_actual[3] ]) 
-
+        n = u_actual
+        
         # Current velocities
         u_c = self.V_c * math.cos(self.beta_c - eta[5])      # current surge velocity
         v_c = self.V_c * math.sin(self.beta_c - eta[5])      # current sway velocity
