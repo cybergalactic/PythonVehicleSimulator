@@ -14,9 +14,9 @@ import numpy as np
 from functions.gnc import ssa 
 
 legendSize = 10                     # legend size
-figSize1 = [30, 20]                 # figure1 size in cm
+figSize1 = [25, 15]                 # figure1 size in cm
 figSize2 = [25, 15]                 # figure2 size in cm
-dpiValue = 300                      # figure dpi value
+dpiValue = 150                      # figure dpi value
 
 def R2D(value):                     # radians to degrees
     return value * 180 / math.pi
