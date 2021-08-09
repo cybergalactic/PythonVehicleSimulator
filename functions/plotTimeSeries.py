@@ -16,6 +16,7 @@ from functions.gnc import ssa
 legendSize = 10                     # legend size
 figSize1 = [30, 20]                 # figure1 size in cm
 figSize2 = [25, 15]                 # figure2 size in cm
+dpiValue = 300                      # figure dpi value
 
 def R2D(value):                     # radians to degrees
     return value * 180 / math.pi
@@ -47,12 +48,13 @@ def plotVehicleStates(simTime, simData, figNo):
     # Speed
     U = np.sqrt( np.multiply(u,u) + np.multiply(v,v) + np.multiply(w,w) )
      
-    beta_c  = R2D(ssa(np.arctan2(v,u)))          # crab angle
-    alpha_c = R2D(ssa(np.arctan2(w,u)))          # flight path angle
-    chi = R2D(ssa(simData[:,5]+np.arctan2(v,u))) # course angle; chi = psi + beta_c 
+    beta_c  = R2D(ssa(np.arctan2(v,u)))          # crab angle, beta_c
+    alpha_c = R2D(ssa(np.arctan2(w,u)))          # flight path angle 
+    chi = R2D(ssa(simData[:,5]+np.arctan2(v,u))) # course angle, chi=psi+beta_c 
 
     # Plots
-    plt.figure(figNo,figsize=(cm2inch(figSize1[0]),cm2inch(figSize1[1])))
+    plt.figure(figNo,figsize=(cm2inch(figSize1[0]),cm2inch(figSize1[1])),
+               dpi=dpiValue)
     plt.grid()
 
     plt.subplot(3, 3, 1)
@@ -84,7 +86,8 @@ def plotVehicleStates(simTime, simData, figNo):
 
     plt.subplot(3, 3, 6)
     plt.plot(t, theta, t, alpha_c)
-    plt.legend(['Pitch angle (deg)','Flight path angle (deg)'],fontsize=legendSize)      
+    plt.legend(['Pitch angle (deg)','Flight path angle (deg)'],
+               fontsize=legendSize)      
     plt.grid()
  
     plt.subplot(3, 3, 7)
@@ -116,7 +119,8 @@ def plotControls(simTime, simData, vehicle, figNo):
     # Time vector
     t = simTime
     
-    plt.figure(figNo,figsize=(cm2inch(figSize2[0]),cm2inch(figSize2[1])))
+    plt.figure(figNo,figsize=(cm2inch(figSize2[0]),cm2inch(figSize2[1])),
+               dpi=dpiValue)
     
     # Columns and rows needed to plot vehicle.dimU control inputs
     col = 2
@@ -125,10 +129,10 @@ def plotControls(simTime, simData, vehicle, figNo):
     # Plot the vehicle.dimU active control inputs
     for i in range(0,vehicle.dimU):
         
-        u_control = simData[:,2*DOF+i]                  # control input, commands
-        u_actual  = simData[:,2*DOF+vehicle.dimU+i]     # actual control input
+        u_control = simData[:,2*DOF+i]                # control input, commands
+        u_actual  = simData[:,2*DOF+vehicle.dimU+i]   # actual control input
         
-        if vehicle.controls[i].find("deg") != -1:       # convert angles to deg
+        if vehicle.controls[i].find("deg") != -1:     # convert angles to deg
             u_control = R2D(u_control)
             u_actual  = R2D(u_actual)
 
