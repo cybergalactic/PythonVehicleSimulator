@@ -192,6 +192,7 @@ class otter:
         self.zeta = 0.8
         
         # Reference model
+        self.r_max = 10 * math.pi / 180   # maximum yaw rate 
         self.psi_d = 0           # angle, angular rate and angular acc. states
         self.r_d = 0
         self.a_d = 0
@@ -293,8 +294,6 @@ class otter:
                - Kp * ( ssa( psi-psi_d ) + Td * (r - r_d) + (1/Ti) * z )
         
         """                  
-        r_max = 10 * math.pi / 180   # maximum yaw rate 
-
         psi = eta[5]                # yaw angle
         r = nu[5]                   # yaw rate
         e_psi = psi - self.psi_d    # yaw angle tracking error
@@ -317,7 +316,7 @@ class otter:
                 
         [tau_N, self.e_int, self.psi_d, self.r_d, self.a_d] = \
             PIDpolePlacement( self.e_int, e_psi, e_r, self.psi_d, self.r_d, self.a_d, \
-            m, d, k, wn_d, zeta_d, wn, zeta, psi_ref, r_max, sampleTime )
+            m, d, k, wn_d, zeta_d, wn, zeta, psi_ref, self.r_max, sampleTime )
 
         [n1, n2] = self.controlAllocation(tau_X, tau_N)
         u_control = np.array([n1, n2],float)   
