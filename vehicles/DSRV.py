@@ -93,7 +93,8 @@ class DSRV:
         self.zeta = 1
         
         # Reference model
-        self.z_d = 0            # position, velocity and acc. states
+        self.w_max = 1                   # maximum heave velocity
+        self.z_d = 0                     # position, velocity and acc. states
         self.w_d = 0
         self.a_d = 0
         self.wn_d = self.wn / 5
@@ -166,8 +167,6 @@ class DSRV:
         delta_c = depthAutopilot(eta,nu,sampleTime) is a PID controller for 
         automatic depth control based on pole placement.
         """                  
-        w_max = 1                   # maximum heave velocity
-
         z = eta[2]                  # heave position
         w = nu[2]                   # heave velocity
         e_z = z - self.z_d          # heave position tracking error
@@ -187,7 +186,7 @@ class DSRV:
         [delta_c, self.e_int, self.z_d, self.w_d, self.a_d] = PIDpolePlacement( \
             self.e_int, e_z, e_w, \
             self.z_d, self.w_d, self.a_d, \
-            m, d, k, wn_d, zeta_d, wn, zeta, r, w_max, sampleTime )
+            m, d, k, wn_d, zeta_d, wn, zeta, r, self.w_max, sampleTime )
     
         u_control = np.array([delta_c],float)   
          
