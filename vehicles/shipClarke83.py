@@ -97,6 +97,7 @@ class shipClarke83:
         self.zeta = 1
         
         # Reference model
+        self.r_max = 1.0 * math.pi / 180   # maximum yaw rate 
         self.psi_d = 0           # angle, angular rate and angular acc. states
         self.r_d = 0
         self.a_d = 0
@@ -214,9 +215,6 @@ class shipClarke83:
         tau_N = m * a_d + d * r_d 
               - Kp * ( ssa( psi-psi_d ) + Td * (r - r_d) + (1/Ti) * e_int )        
         """                  
-
-        r_max = 1.0 * math.pi / 180   # maximum yaw rate 
-
         psi = eta[5]                # yaw angle
         r = nu[5]                   # yaw rate
         e_psi = psi - self.psi_d    # yaw angle tracking error
@@ -235,7 +233,7 @@ class shipClarke83:
         # PID feedback controller with 3rd-order reference model               
         [tau_N, self.e_int, self.psi_d, self.r_d, self.a_d] = PIDpolePlacement(\
                 self.e_int, e_psi, e_r,self.psi_d, self.r_d, \
-                self.a_d, m, d, k, wn_d, zeta_d, wn, zeta, psi_ref, r_max, \
+                self.a_d, m, d, k, wn_d, zeta_d, wn, zeta, psi_ref, self.r_max, \
                 sampleTime )
         
         # Control allocation: tau_N = Yd * delta
