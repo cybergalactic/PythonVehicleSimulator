@@ -2,6 +2,7 @@
 
 from .DSRV import *
 from .otter import *
+from .ROVzefakkel import *
 from .semisub import *
 from .shipClarke83 import *
 from .supply import *
