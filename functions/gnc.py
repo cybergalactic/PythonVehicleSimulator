@@ -143,7 +143,7 @@ def m2c(M, nu):
 # CY_2D = Hoerner(B,T)
 # Hoerner computes the 2D Hoerner cross-flow form coeff. as a function of beam 
 # B and draft T.The data is digitized and interpolation is used to compute others 
-#  data point than those in the table
+# data point than those in the table
 def Hoerner(B,T):
     
     # DATA = [B/2T  C_D]
