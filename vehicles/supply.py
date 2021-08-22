@@ -77,7 +77,7 @@ class supply:
             250, 250, 160, 160 ],float)                                     
         self.nu = np.array([0, 0, 0, 0, 0, 0], float)  # velocity vector    
         self.u_actual = np.array([0, 0, 0, 0], float)  # RPM inputs
-        self.name = "Offshore supply vessel"     
+        self.name = 'Offshore supply vessel'     
         
         # Two tunnel thrusters in the bow, no. 1 and 2
         # Two main propellers aft, no. 3 and 4        
