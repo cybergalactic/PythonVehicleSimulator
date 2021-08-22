@@ -7,3 +7,4 @@ from .ROVzefakkel import *
 from .semisub import *
 from .shipClarke83 import *
 from .supply import *
+from .tanker import *
