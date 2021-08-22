@@ -24,7 +24,8 @@ otter('headingAutopilot',psi_d,V_c,beta_c,tau_X)
 ROVzefakkel('headingAutopilot',U,psi_d)                          
 semisub('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)                      
 shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_c,beta_c,tau_X)  
-supply('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)                      
+supply('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)      
+tanker('headingAutopilot',psi_d,V_current,beta_c,depth)               
 
 Call constructors without arguments to test step inputs, e.g. DSRV(), otter(), etc. 
 """
@@ -33,6 +34,7 @@ Call constructors without arguments to test step inputs, e.g. DSRV(), otter(), e
 vehicle1 = otter('headingAutopilot',100.0,0.3,-30.0,200.0) 
 # vehicle2 = ROVzefakkel('headingAutopilot',3.0,100.0)
 vehicle2 = frigate('headingAutopilot',10.0,100.0)
+# vehicle2 = tanker('headingAutopilot',-20,0.5,150,20,80)
 # vehicle2 = shipClarke83('headingAutopilot',-20.0,70,8,6,0.7,0.5,-10.0,1e5)
 # vehicle2 = supply('DPcontrol',4.0,4.0,100.0,0.5,-20.0)
 # vehicle2 = semisub('DPcontrol',10.0,2.0,20.0,0.5,-20.0)
