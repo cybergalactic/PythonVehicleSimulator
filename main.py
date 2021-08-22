@@ -18,19 +18,21 @@ sampleTime = 0.02
 N = 10000 
 
 """ 
-DSRV('depthAutopilot',z_d)                                        PID depth autopilot
-otter('headingAutopilot',psi_d,V_c,beta_c,tau_X)                  PID heading autopilot
-ROVzefakkel('headingAutopilot',U,psi_d)                           PID heading autopilot
-semisub('DPcontrol',10.0,2.0,20.0,0.5,-20.0)                      DP control system
-shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_c,beta_c,tau_X)  PID heading autopilot
-supply('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)                      DP control system
+DSRV('depthAutopilot',z_d)                                       
+frigate('headingAutopilot',U,psi_d)
+otter('headingAutopilot',psi_d,V_c,beta_c,tau_X)                  
+ROVzefakkel('headingAutopilot',U,psi_d)                          
+semisub('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)                      
+shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_c,beta_c,tau_X)  
+supply('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)                      
 
 Call constructors without arguments to test step inputs, e.g. DSRV(), otter(), etc. 
 """
 
-#v ehicle1 = DSRV('depthAutopilot',60.0) 
+# vehicle1 = DSRV('depthAutopilot',60.0) 
 vehicle1 = otter('headingAutopilot',100.0,0.3,-30.0,200.0) 
-vehicle2 = ROVzefakkel('headingAutopilot',3.0,100.0)
+# vehicle2 = ROVzefakkel('headingAutopilot',3.0,100.0)
+vehicle2 = frigate('headingAutopilot',10.0,100.0)
 # vehicle2 = shipClarke83('headingAutopilot',-20.0,70,8,6,0.7,0.5,-10.0,1e5)
 # vehicle2 = supply('DPcontrol',4.0,4.0,100.0,0.5,-20.0)
 # vehicle2 = semisub('DPcontrol',10.0,2.0,20.0,0.5,-20.0)
