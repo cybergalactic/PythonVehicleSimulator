@@ -8,6 +8,7 @@ is used to define multiple vehicle objects for real-time simulation. The python 
 
     /vehicles/               Vehicle classes/methods:  
         DSRV.py                 - Deep submergence rescue vehicle (DSRV) controlled by a stern plane, L = 5.0 m
+        frigate.py              - Frigate, rudder-controlled ship described by a nonlinear Nomoto model, L = 100.0 m
         otter.py                - Otter unmanned surface vehicle (USV) controlled by two propellers, L = 2.0 m
         ROVzefakkel.py          - ROV Zefakkel, rudder-controlled ship described by a nonlinear Nomoto model, L = 54.0 m
         semisub.py              - Semisubmersible controlled by tunnel thrusters and main propellers, L = 84.5 m
