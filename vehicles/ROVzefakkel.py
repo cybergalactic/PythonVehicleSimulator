@@ -44,6 +44,7 @@ Author:     Thor I. Fossen
 """
 import numpy as np
 import math
+import sys
 from functions.control import PIDpolePlacement
 
 # Class Vehicle
@@ -62,6 +63,10 @@ class ROVzefakkel:
             self.controlDescription = "Step input for delta" 
             controlSystem = 'stepInput'  
       
+        # Check if the speed U is within the valid range
+        if (U < 1.0 or U > 7.0):
+            sys.exit('The speed U should be between 5-12 m/s')
+            
         self.ref = r
         self.controlMode = controlSystem
                     
