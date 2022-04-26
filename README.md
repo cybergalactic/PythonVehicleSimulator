@@ -21,13 +21,23 @@ is used to define multiple vehicle objects for real-time simulation. The python 
         guidance.py             - guidance functions        
         mainLoop.py             - main simulation loop
         plotTimeSeries.py       - plotting functions
-        
-In order to run the main program main.py the following modules must be installed:
-
-    numpy           https://numpy.org/install/
-    matplotlib      https://matplotlib.org/stable/users/installing.html
 
 For more information about mathematical modeling of marine craft and methods for guidance, navigation and control, please consult:
 
 T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control. 2nd. Edition, Wiley. 
 URL: www.fossen.biz/wiley
+
+## Install
+In order to run the main program main.py the following modules must be installed:
+
+    numpy           https://numpy.org/install/
+    matplotlib      https://matplotlib.org/stable/users/installing.html
+
+```pip install python_vehicle_simulator```
+
+### Development:
+1. Clone the repository.
+2. In the root of the repository:
+```pip install -e .```
+
+

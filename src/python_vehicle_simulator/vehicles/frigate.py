@@ -45,7 +45,7 @@ Author:     Thor I. Fossen
 import numpy as np
 import math
 import sys
-from functions.control import PIDpolePlacement
+from python_vehicle_simulator.control import PIDpolePlacement
 
 # Class Vehicle
 class frigate:
@@ -54,7 +54,7 @@ class frigate:
     frigate('headingAutopilot',U,psi_d)     Heading autopilot, speed (m/s)
                                                     and desired heading(deg)
     """        
-    def __init__(self, controlSystem = 'stepInput', U = 3.0, r = 0.0):
+    def __init__(self, controlSystem = 'stepInput', U = 5.0, r = 0.0):
                                   
         if (controlSystem == 'headingAutopilot'):
             self.controlDescription = 'Heading autopilot, psi_d = ' + str(r) + ' (deg)'
