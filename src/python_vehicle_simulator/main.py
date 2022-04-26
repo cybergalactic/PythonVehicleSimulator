@@ -10,8 +10,8 @@ URL: www.fossen.biz/wiley
 Author:     Thor I. Fossen
 """
 import matplotlib.pyplot as plt
-from . import plotVehicleStates, plotControls, simulate
-from vehicles import *
+from python_vehicle_simulator import plotVehicleStates, plotControls, simulate
+from python_vehicle_simulator.vehicles import *
 
 # Simulation parameters: sample time and number of samples
 sampleTime = 0.02
