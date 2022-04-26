@@ -30,7 +30,7 @@ def test_plot_vehicle_states(simulation):
 def test_plot_controls(simulation, vehicle):
 
     simTime, simData = simulation
-    plotControls(simTime, simData, vehicle, 4)
+    plotControls(simTime, simData, vehicle, 2)
     #plt.show()
 
 def test_DSRV():
@@ -45,7 +45,6 @@ def test_ROVzefakkel():
     vehicle = vehicles.ROVzefakkel()
     simulate(N, sampleTime, vehicle)
 
-@pytest.mark.skip("ToDo: Fix this one.")
 def test_semisub():
     vehicle = vehicles.semisub()
     simulate(N, sampleTime, vehicle)
@@ -61,7 +60,6 @@ def test_supply():
 def test_frigate():
     vehicle = vehicles.frigate()
     simulate(N, sampleTime, vehicle)
-
 
 def test_tanker():
     vehicle = vehicles.tanker()
