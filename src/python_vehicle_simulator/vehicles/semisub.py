@@ -34,7 +34,7 @@ u_alloc = controlAllocation(tau)
 n = DPcontrol(eta,nu,sampleTime)
     Nonlinear PID controller for DP based on pole placement.    
 
-n = stepInput(t) generates propellers step inputs.
+n = stepInput(t) generates propellers step inputs n = [n1, n2, n3, n4, n5, n6].
     
 Reference: 
   T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
@@ -51,7 +51,7 @@ from python_vehicle_simulator.gnc import sat, ssa
 # Class Vehicle
 class semisub:
     """
-    semisub()                                      Step inputs tau_X, tay_Y, tau_N
+    semisub()                                      Propeller step inputs 
     semisub('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)  DP control system
     """
 
@@ -77,7 +77,7 @@ class semisub:
             )
 
         else:
-            self.controlDescription = "Step inputs for n = [n1, n2, n3, n4]"
+            self.controlDescription = "Step inputs n = [n1, n2, n3, n4, n5, n6]"
             controlSystem = "stepInput"
 
         self.ref = np.array([r_x, r_y, (math.pi / 180) * r_n], float)
@@ -86,12 +86,12 @@ class semisub:
         self.controlMode = controlSystem
 
         # Initialize the semisub model
-        self.L = 84.6
+        self.L = 84.6   # Length (m)
         self.T_n = 1.0  # propeller revolution time constants (s)
-        self.n_max = np.array(
+        self.n_max = np.array(                      # RPM saturation limits (N)  
             [250, 250, 160, 160, 160, 160], float
-        )  # RPM saturation limits (N)                                     # Length (m)
-        self.nu = np.array([0, 0, 0, 0, 0, 0], float)  # velocity vector
+        )                                     
+        self.nu = np.array([0, 0, 0, 0, 0, 0], float)        # velocity vector
         self.u_actual = np.array([0, 0, 0, 0, 0, 0], float)  # RPM inputs
         self.name = "Semisubmersible"
 
@@ -104,7 +104,7 @@ class semisub:
             "$6 Left pontoon main propeller (RPM)",
         ]
         self.dimU = len(self.controls)
-
+        print(self.dimU)
         # Semisub model
         MRB = 1.0e10 * np.array(
             [
@@ -261,15 +261,15 @@ class semisub:
 
     def stepInput(self, t):
         """
-        u = stepInput(t) generates force step inputs.
+        u = stepInput(t) generates propeller step inputs.
         """
-        n = np.array([0, 0, 100, 100], float)
+        tau3 = np.array([10000, 0, 100000], float)
 
         if t > 30:
-            n = np.array([50, 50, 50, 50], float)
+            tau3 = np.array([1000, 1000, 0], float)
         if t > 70:
-            n = np.array([0, 0, 0, 0], float)
+            tau3 = np.array([0, 0, 0], float)
 
-        u_control = n
+        u_control = self.controlAllocation(tau3)
 
         return u_control
