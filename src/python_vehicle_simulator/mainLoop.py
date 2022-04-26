@@ -13,7 +13,7 @@ def simInfo(vehicle):
     print('\nThe Python Vehicle Simulator:')
     print('Vehicle:         %s, L = %s' % (vehicle.name, vehicle.L))
     print('Control system:  %s' % (vehicle.controlDescription))
-
+   
         
 # Function simulate(N, sampleTime, vehicle)
 def simulate(N, sampleTime, vehicle):
@@ -22,7 +22,7 @@ def simulate(N, sampleTime, vehicle):
     t = 0                       # initial simulation time
 
     # Initial state vectors
-    eta = np.array( [0, 0, 0, 0, 0,0], float)    # position/attitude, user editable
+    eta = np.array([0, 0, 0, 0, 0, 0], float)    # position/attitude, user editable
     nu = vehicle.nu                              # velocity, defined by vehicle class
     u_actual = vehicle.u_actual                  # actual inputs, defined by vehicle class  
 
@@ -30,7 +30,7 @@ def simulate(N, sampleTime, vehicle):
 
     # Initialization of table used to store the simulation data
     simData = np.empty( [0, 2*DOF + 2 * vehicle.dimU], float)
-    
+
     # Simulator for-loop
     for i in range(0,N+1):
         
