@@ -33,11 +33,13 @@ In order to run the main program main.py the following modules must be installed
     numpy           https://numpy.org/install/
     matplotlib      https://matplotlib.org/stable/users/installing.html
 
-```pip install python_vehicle_simulator```
+```pip install /XXX/python_vehicle_simulator```
+
+where /XXX/python_vehicle_simulator is the path to the downloaded repository.
 
 ### Development:
 1. Clone the repository.
 2. In the root of the repository:
-```pip install -e .```
+```pip install -e <path>```
 
 
