@@ -28,7 +28,7 @@ For more information about mathematical modeling of marine craft and methods for
 T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control. 2nd. Edition, Wiley. 
 URL: www.fossen.biz/wiley
 
-## Install
+## Install;
 In order to run the main program main.py the following modules must be installed:
 
     numpy           https://numpy.org/install/
