@@ -6,14 +6,16 @@ The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems S
     
 is used to define multiple vehicle objects for real-time simulation. The python source code is located under the catalogues: 
 
-    /src/                      Functions used by the main program:
+    Functions used by the main program: 
+    /src/python_vehicle_simulator/ 
         control.py              - feedback control systems
         gnc.py                  - generic GNC functions
         guidance.py             - guidance functions        
         mainLoop.py             - main simulation loop
         plotTimeSeries.py       - plotting functions
 
-    /src/vehicles/             Vehicle classes/methods:  
+    Vehicle classes/methods: 
+    /src/python_vehicle_simulator/vehicles/              
         DSRV.py                 - Deep submergence rescue vehicle (DSRV) controlled by a stern plane, L = 5.0 m
         frigate.py              - Frigate, rudder-controlled ship described by a nonlinear Nomoto model, L = 100.0 m
         otter.py                - Otter unmanned surface vehicle (USV) controlled by two propellers, L = 2.0 m
