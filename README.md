@@ -24,7 +24,7 @@ The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems S
         
     Animated GIF:
     /src/python_vehicle_simulator/ 
-        3D_animation.gif        - 3D animation file which can be opened in a web browser
+        3D_animation.gif        - 3D animation file which can be opened in a web browser by right-clicking the file
         
 For more information about mathematical modeling of marine craft and methods for guidance, navigation and control, please consult:
 
