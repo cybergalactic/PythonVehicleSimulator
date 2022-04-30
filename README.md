@@ -4,7 +4,7 @@ The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems S
 
     Source files:
     /src/python_vehicle_simulator/ 
-        main.py                 - MAIN PROGRAM (python terminal command >>python3 main.py)
+        main.py                 - MAIN PROGRAM (terminal command >>python3 main.py)
         control.py              - feedback control systems
         gnc.py                  - generic GNC functions
         guidance.py             - guidance functions        
