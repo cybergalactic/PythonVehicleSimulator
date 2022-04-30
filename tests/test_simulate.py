@@ -1,12 +1,23 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+The pytest for 'test_simulate.py' can be run in the termonal using:
+1) cd <path of the Python Vehicle Simulator installation>
+2) pytest -k simulate -v
+"""  
+
 import matplotlib.pyplot as plt
-from python_vehicle_simulator import plotVehicleStates, plotControls, simulate
+from python_vehicle_simulator import *
 import python_vehicle_simulator.vehicles as vehicles
 import pytest
 import matplotlib.pyplot as plt
 
-# Simulation parameters: sample time and number of samples
-sampleTime = 0.02
-N = 10000
+sampleTime = 0.02                   # sample time
+N = 10000                           # number of samples
+numDataPoints = 50                  # number of 3D data points
+FPS = 10                            # frames per second (animated GIF)
+filename = '3D_animation.gif'       # data file for animated GIF
+browser = 'safari'  
 
 @pytest.fixture
 def vehicle():
@@ -21,18 +32,20 @@ def test_simulate(simulation):
     pass
     
 def test_plot_vehicle_states(simulation):
-
     simTime, simData = simulation
-    
     plotVehicleStates(simTime, simData, 1)
     #plt.show()
 
 def test_plot_controls(simulation, vehicle):
-
     simTime, simData = simulation
     plotControls(simTime, simData, vehicle, 2)
     #plt.show()
 
+def test_3D_plot(simulation, vehicle):
+    simTime, simData = simulation
+    plot3D(simData,numDataPoints,FPS,filename,3)
+    #plt.show()
+    
 def test_DSRV():
     vehicle = vehicles.DSRV()
     simulate(N, sampleTime, vehicle)
