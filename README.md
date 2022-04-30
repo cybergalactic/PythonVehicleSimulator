@@ -4,7 +4,7 @@ The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems S
 
     Source files:
     /src/python_vehicle_simulator/ 
-        main.py                 - MAIN PROGRAM
+        main.py                 - MAIN PROGRAM (python terminal command >>python3 main.py)
         control.py              - feedback control systems
         gnc.py                  - generic GNC functions
         guidance.py             - guidance functions        
@@ -31,15 +31,15 @@ For more information about mathematical modeling of marine craft and methods for
 T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control. 2nd. Edition, Wiley. 
 URL: www.fossen.biz/wiley
 
-## Install;
+## Install:
 In order to run the main program ```main.py``` the following modules must be installed:
 
     numpy           https://numpy.org/install/
     matplotlib      https://matplotlib.org/stable/users/installing.html
 
-```pip install /XXX/PythonVehicleSimulator```
+```pip install <path>```
 
-where /XXX/PythonVehicleSimulator is the path to the downloaded repository.
+where <path> is the path of the downloaded repository.
 
 ### Development:
 1. Clone the repository.
