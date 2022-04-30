@@ -1,13 +1,10 @@
 # Python Vehicle Simulator
 
-The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems Simulator) toolbox. It includes models for autonomous underwater vehicles (AUVs), unmanned surface vehicles (USVs), and ships. The vehicle models are based on the MSS vessel models located in /MSS/VESSELS/ catalogue. Each vehicle is modeled as an object in Python and the vehicle class has methods for guidance, navigation and control. The main program:
+The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems Simulator) toolbox. It includes models for autonomous underwater vehicles (AUVs), unmanned surface vehicles (USVs), and ships. The vehicle models are based on the MSS vessel models located in /MSS/VESSELS/ catalogue. Each vehicle is modeled as an object in Python and the vehicle class has methods for guidance, navigation and control. The main program ```main.py``` is used to define vehicle objects for real-time simulation.
 
-    main.py  
-    
-is used to define multiple vehicle objects for real-time simulation. The python source code is located under the catalogues: 
-
-    Functions used by the main program: 
+    Source files:
     /src/python_vehicle_simulator/ 
+        main.py                 - MAIN program 
         control.py              - feedback control systems
         gnc.py                  - generic GNC functions
         guidance.py             - guidance functions        
@@ -31,7 +28,7 @@ T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control. 
 URL: www.fossen.biz/wiley
 
 ## Install;
-In order to run the main program main.py the following modules must be installed:
+In order to run the main program ```main.py``` the following modules must be installed:
 
     numpy           https://numpy.org/install/
     matplotlib      https://matplotlib.org/stable/users/installing.html
