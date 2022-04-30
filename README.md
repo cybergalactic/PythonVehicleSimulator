@@ -4,7 +4,7 @@ The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems S
 
     Source files:
     /src/python_vehicle_simulator/ 
-        main.py                 - MAIN program 
+        main.py                 - MAIN PROGRAM
         control.py              - feedback control systems
         gnc.py                  - generic GNC functions
         guidance.py             - guidance functions        
@@ -21,7 +21,11 @@ The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems S
         shipClarke83.py         - Ship, linear maneuvering model specified by L, B and T using the Clarke (1983) formulas
         supply.py               - Offshore supply vessel controlled by tunnel thrusters and main propellers, L = 76.2 m
         tanker.py               - Tanker, rudder-controlled ship model including shallow water effects, L = 304.8 m
-
+        
+    Animated GIF:
+    /src/python_vehicle_simulator/ 
+        3D_animation.gif        - 3D animation file which can be opened in a web browser
+        
 For more information about mathematical modeling of marine craft and methods for guidance, navigation and control, please consult:
 
 T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control. 2nd. Edition, Wiley. 
