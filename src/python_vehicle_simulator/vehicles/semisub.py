@@ -104,7 +104,7 @@ class semisub:
             "$6 Left pontoon main propeller (RPM)",
         ]
         self.dimU = len(self.controls)
-        print(self.dimU)
+        
         # Semisub model
         MRB = 1.0e10 * np.array(
             [
