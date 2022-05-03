@@ -39,7 +39,7 @@ In order to run the main program ```main.py``` the following modules must be ins
 
 ```pip install <path>```
 
-where <path> is the path of the downloaded repository.
+where ```<path>``` is the path of the downloaded repository.
 
 ### Development:
 1. Clone the repository.
