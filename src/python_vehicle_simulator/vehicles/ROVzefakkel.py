@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 ROVzefakkel.py:  
@@ -57,7 +58,11 @@ class ROVzefakkel:
     def __init__(self, controlSystem = 'stepInput', U = 3.0, r = 0.0):
                                   
         if (controlSystem == 'headingAutopilot'):
-            self.controlDescription = 'Heading autopilot, psi_d = ' + str(r) + ' (deg)'
+            self.controlDescription = (
+                'Heading autopilot, psi_d = ' 
+                + str(r) 
+                + ' deg'
+                )
              
         else:  
             self.controlDescription = "Step input for delta" 
@@ -71,7 +76,7 @@ class ROVzefakkel:
         self.controlMode = controlSystem
                     
         # Initialize the ship model
-        self.name = "ROV Zefakkel"
+        self.name = "ROV Zefakkel (see 'ROVzefakkel.py' for more details)"
         self.L = 45.0        # Length      
         self.deltaMax = 30   # max rudder angle (deg)  
         self.DdeltaMax = 10  # max rudder rate (deg/s)        
