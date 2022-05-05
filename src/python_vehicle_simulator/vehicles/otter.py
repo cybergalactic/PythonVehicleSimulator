@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 otter.py: 
@@ -50,11 +51,20 @@ class otter:
     """
 
     def __init__(
-        self, controlSystem="stepInput", r=0, V_current=0, beta_current=0, tau_X=120
+        self, 
+        controlSystem="stepInput", 
+        r = 0, 
+        V_current = 0, 
+        beta_current = 0, 
+        tau_X = 120
     ):
 
         if controlSystem == "headingAutopilot":
-            self.controlDescription = "Heading autopilot, psi_d = " + str(r) + " (deg)"
+            self.controlDescription = (
+                "Heading autopilot, psi_d = "
+                + str(r)
+                + " deg"
+                )
         else:
             self.controlDescription = "Step inputs for n1 and n2"
             controlSystem = "stepInput"
@@ -67,11 +77,11 @@ class otter:
 
         # Initialize the Otter USV model
         self.T_n = 1.0  # propeller time constants (s)
-        self.L = 2.0  # Length (m)
-        self.B = 1.08  # beam (m)
+        self.L = 2.0    # Length (m)
+        self.B = 1.08   # beam (m)
         self.nu = np.array([0, 0, 0, 0, 0, 0], float)  # velocity vector
         self.u_actual = np.array([0, 0], float)  # propeller revolution states
-        self.name = "Otter USV"
+        self.name = "Otter USV (see 'otter.py' for more details)"
 
         self.controls = [
             "Left propeller shaft speed (rad/s)",
@@ -80,15 +90,15 @@ class otter:
         self.dimU = len(self.controls)
 
         # Constants
-        g = 9.81  # acceleration of gravity (m/s^2)
+        g = 9.81    # acceleration of gravity (m/s^2)
         rho = 1025  # density of water
 
-        m = 55.0  # mass (kg)
-        mp = 25.0  # Payload (kg)
+        m = 55.0    # mass (kg)
+        mp = 25.0   # Payload (kg)
         self.m_total = m + mp
-        rp = np.array([0, 0, -0.35], float)  # location of payload (m)
-        rg = np.array([0.2, 0, -0.2], float)  # CG for hull only (m)
-        rg = (m * rg + mp * rp) / (m + mp)  # CG corrected for payload
+        rp = np.array([0, 0, -0.35], float)     # location of payload (m)
+        rg = np.array([0.2, 0, -0.2], float)    # CG for hull only (m)
+        rg = (m * rg + mp * rp) / (m + mp)      # CG corrected for payload
         self.S_rg = Smtrx(rg)
         self.H_rg = Hmtrx(rg)
         self.S_rp = Smtrx(rp)
@@ -96,14 +106,14 @@ class otter:
         R44 = 0.4 * self.B  # radii of gyration (m)
         R55 = 0.25 * self.L
         R66 = 0.25 * self.L
-        T_yaw = 1.0  # time constant in yaw (s)
-        Umax = 6 * 0.5144  # max forward speed (m/s)
+        T_yaw = 1.0         # time constant in yaw (s)
+        Umax = 6 * 0.5144   # max forward speed (m/s)
 
         # Data for one pontoon
         self.B_pont = 0.25  # beam of one pontoon (m)
-        y_pont = 0.395  # distance from centerline to waterline centroid (m)
-        Cw_pont = 0.75  # waterline area coefficient (-)
-        Cb_pont = 0.4  # block coefficient, computed from m = 55 kg
+        y_pont = 0.395      # distance from centerline to waterline centroid (m)
+        Cw_pont = 0.75      # waterline area coefficient (-)
+        Cb_pont = 0.4       # block coefficient, computed from m = 55 kg
 
         # Inertia dyadic, volume displacement and draft
         nabla = (m + mp) / rho  # volume
@@ -117,7 +127,7 @@ class otter:
         self.k_pos = 0.02216 / 2  # Positive Bollard, one propeller
         self.k_neg = 0.01289 / 2  # Negative Bollard, one propeller
         self.n_max = math.sqrt((0.5 * 24.4 * g) / self.k_pos)  # max. prop. rev.
-        self.n_min = -math.sqrt((0.5 * 13.6 * g) / self.k_neg)  # min. prop. rev.
+        self.n_min = -math.sqrt((0.5 * 13.6 * g) / self.k_neg) # min. prop. rev.
 
         # MRB_CG = [ (m+mp) * I3  O3      (Fossen 2021, Chapter 3)
         #               O3       Ig ]
@@ -154,10 +164,10 @@ class otter:
         KB = (1 / 3) * (5 * self.T / 2 - 0.5 * nabla / (self.L * self.B_pont))
         BM_T = I_T / nabla  # BM values
         BM_L = I_L / nabla
-        KM_T = KB + BM_T  # KM values
+        KM_T = KB + BM_T    # KM values
         KM_L = KB + BM_L
         KG = self.T - rg[2]
-        GM_T = KM_T - KG  # GM values
+        GM_T = KM_T - KG    # GM values
         GM_L = KM_L - KG
 
         G33 = rho * g * (2 * Aw_pont)  # spring stiffness
@@ -288,6 +298,7 @@ class otter:
 
         return nu, u_actual
 
+
     def controlAllocation(self, tau_X, tau_N):
         """
         [n1, n2] = controlAllocation(tau_X, tau_N)
@@ -300,6 +311,7 @@ class otter:
         n2 = np.sign(u_alloc[1]) * math.sqrt(abs(u_alloc[1]))
 
         return n1, n2
+
 
     def headingAutopilot(self, eta, nu, sampleTime):
         """
@@ -353,6 +365,7 @@ class otter:
         u_control = np.array([n1, n2], float)
 
         return u_control
+
 
     def stepInput(self, t):
         """
