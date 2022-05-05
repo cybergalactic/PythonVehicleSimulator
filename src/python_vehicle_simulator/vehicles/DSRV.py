@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 DSRV.py:  
@@ -47,7 +48,7 @@ class DSRV:
     def __init__(self, controlSystem="stepInput", r=0):
 
         if controlSystem == "depthAutopilot":
-            self.controlDescription = "Depth autopilot, z_d = " + str(r) + " (m)"
+            self.controlDescription = "Depth autopilot, z_d = " + str(r) + " m"
 
         else:
             self.controlDescription = "Step input for delta_s"
@@ -57,11 +58,11 @@ class DSRV:
         self.controlMode = controlSystem
 
         # Initialize the DSRV model
-        self.name = "DSRV"
-        self.L = 5.0  # Length
+        self.name = "DSRV (see 'DSRV.py' for more details)"
+        self.L = 5.0        # Length
         self.deltaMax = 20  # max stern plane angle (deg)
         self.T_delta = 1.0  # rudder time constants (s)
-        self.U0 = 4.11  # Cruise speed: 4.11 m/s = 8 knots
+        self.U0 = 4.11      # cruise speed: 4.11 m/s = 8 knots
         self.W0 = 0
         self.nu = np.array([self.U0, 0, self.W0, 0, 0, 0], float)  # velocity vector
         self.u_actual = np.array([0], float)  # control input vector
