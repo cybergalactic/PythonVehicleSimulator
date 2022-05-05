@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 frigate.py:  
@@ -57,7 +58,11 @@ class frigate:
     def __init__(self, controlSystem = 'stepInput', U = 5.0, r = 0.0):
                                   
         if (controlSystem == 'headingAutopilot'):
-            self.controlDescription = 'Heading autopilot, psi_d = ' + str(r) + ' (deg)'
+            self.controlDescription = (
+                'Heading autopilot, psi_d = ' 
+                + str(r) 
+                + ' deg'
+                )
              
         else:  
             self.controlDescription = "Step input for delta" 
@@ -71,7 +76,7 @@ class frigate:
         self.controlMode = controlSystem
                     
         # Initialize the ship model
-        self.name = "Frigate"
+        self.name = "Frigate (see 'frigate.py' for more details)"
         self.L = 100.0        # Length      
         self.deltaMax = 30   # max rudder angle (deg)  
         self.DdeltaMax = 10  # max rudder rate (deg/s)        
