@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 tanker.py:  
@@ -61,7 +62,7 @@ class tanker:
     ):
 
         if controlSystem == "headingAutopilot":
-            self.controlDescription = "Heading autopilot, psi_d = " + str(r) + " (deg)"
+            self.controlDescription = "Heading autopilot, psi_d = " + str(r) + " deg"
         else:
             self.controlDescription = "Step input for delta_r"
             controlSystem = "stepInput"
@@ -74,7 +75,7 @@ class tanker:
         self.controlMode = controlSystem
 
         # Initialize the ship model
-        self.name = "Tanker"
+        self.name = "Tanker (see 'tanker.py' for more details)"
         self.L = 304.8  # length (m)
         self.T = 18.46  # draft (m)
         self.deltaMax = 30  # max rudder angle (deg)
