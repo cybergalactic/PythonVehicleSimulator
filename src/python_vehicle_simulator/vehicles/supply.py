@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 supply.py: 
@@ -58,11 +59,11 @@ class supply:
     def __init__(
         self,
         controlSystem="stepInput",
-        r_x=0,
-        r_y=0,
-        r_n=0,
-        V_current=0,
-        beta_current=0,
+        r_x = 0,
+        r_y = 0,
+        r_n = 0,
+        V_current = 0,
+        beta_current = 0,
     ):
 
         if controlSystem == "DPcontrol":
@@ -91,7 +92,7 @@ class supply:
         self.n_max = np.array([250, 250, 160, 160], float)  # RPM saturation limits (N)
         self.nu = np.array([0, 0, 0, 0, 0, 0], float)  # velocity vector
         self.u_actual = np.array([0, 0, 0, 0], float)  # RPM inputs
-        self.name = "Offshore supply vessel"
+        self.name = "Offshore supply vessel (see 'supply.py' for more details)"
 
         # Two tunnel thrusters in the bow, no. 1 and 2
         # Two main propellers aft, no. 3 and 4
