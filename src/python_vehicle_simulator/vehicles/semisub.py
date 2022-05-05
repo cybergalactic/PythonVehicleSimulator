@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
    semisub.py 
@@ -93,7 +94,7 @@ class semisub:
         )                                     
         self.nu = np.array([0, 0, 0, 0, 0, 0], float)        # velocity vector
         self.u_actual = np.array([0, 0, 0, 0, 0, 0], float)  # RPM inputs
-        self.name = "Semisubmersible"
+        self.name = "Semisubmersible (see 'semisub.py' for more details)"
 
         self.controls = [
             "#1 Bow tunnel thruster (RPM)",
