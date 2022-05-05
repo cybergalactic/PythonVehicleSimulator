@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 shipClarke83.py:  
@@ -68,7 +69,7 @@ class shipClarke83:
     ):
 
         if controlSystem == "headingAutopilot":
-            self.controlDescription = "Heading autopilot, psi_d = " + str(r) + " (deg)"
+            self.controlDescription = "Heading autopilot, psi_d = " + str(r) + " deg"
 
         else:
             self.controlDescription = "Step input for delta_r"
@@ -80,7 +81,7 @@ class shipClarke83:
         self.controlMode = controlSystem
 
         # Initialize the ship model
-        self.name = "Clarke (1983) linear ship model"
+        self.name = "Linear ship maneuvering model (see 'shipClarke83.py' for more details)"
         self.L = L  # length (m)
         self.B = B  # beam (m)
         self.T = T  # Draft (m)
