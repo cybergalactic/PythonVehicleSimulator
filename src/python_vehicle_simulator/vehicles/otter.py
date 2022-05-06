@@ -46,8 +46,14 @@ from python_vehicle_simulator.gnc import Smtrx, Hmtrx, m2c, crossFlowDrag, sat
 # Class Vehicle
 class otter:
     """
-    otter()                          Step inputs for n1 and n2
-    otter('headingAutopilot',psi_d)  Heading autopilot, desired yaw angle (deg)
+    otter()                                           Propeller step inputs
+    otter('headingAutopilot',psi_d,V_c,beta_c,tau_X)  Heading autopilot
+    
+    Inputs:
+        psi_d: desired heading angle (deg)
+        V_c: current speed (m/s)
+        beta_c: current direction (deg)
+        tau_X: surge force, pilot input (N)        
     """
 
     def __init__(
@@ -85,7 +91,7 @@ class otter:
 
         self.controls = [
             "Left propeller shaft speed (rad/s)",
-            "Right propeller shaft speed (rad/s)",
+            "Right propeller shaft speed (rad/s)"
         ]
         self.dimU = len(self.controls)
 
