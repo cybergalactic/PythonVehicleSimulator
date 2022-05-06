@@ -52,8 +52,11 @@ from python_vehicle_simulator.control import PIDpolePlacement
 class frigate:
     """
     frigate()                               Step input, rudder angle
-    frigate('headingAutopilot',U,psi_d)     Heading autopilot, speed (m/s)
-                                                    and desired heading(deg)
+    frigate('headingAutopilot',U,psi_d)     Heading autopilot
+    
+    Inputs:
+        U: cruise speed (m/s)
+        psi_d: desired heading angle (deg)                                           and desired heading(deg)
     """        
     def __init__(self, controlSystem = 'stepInput', U = 5.0, r = 0.0):
                                   
