@@ -49,6 +49,13 @@ class tanker:
         Rudder angle step inputs
     tanker('headingAutopilot',psi_d,V_current,beta_c,depth,rpm)
         Heading autopilot
+        
+    Inputs:
+        psi_d:  desired yaw angle (deg)
+        V_c:    current speed (m/s)
+        beta_c: current direction (deg)
+        depth:  the water depth must be larger than the draft T = 18.46 m 
+        rpm:    shaft speed, nominal propeller rpm = 80       
     """
 
     def __init__(
