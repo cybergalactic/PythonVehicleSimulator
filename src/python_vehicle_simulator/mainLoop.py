@@ -14,6 +14,19 @@ from .gnc import attitudeEuler
 ###############################################################################
 def printSimInfo():
     
+    """
+    Constructors used to define the vehicle objects as (see main.py for details):
+        DSRV('depthAutopilot',z_d)                                       
+        frigate('headingAutopilot',U,psi_d)
+        otter('headingAutopilot',psi_d,V_c,beta_c,tau_X)                  
+        ROVzefakkel('headingAutopilot',U,psi_d)                          
+        semisub('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)                       
+        shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_c,beta_c,tau_X)  
+        supply('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)      
+        tanker('headingAutopilot',psi_d,V_c,beta_c,depth)    
+        remus100('depthHeadingAutopilot',z_d,psi_d,V_c,beta_c)
+    """     
+    
     print('---------------------------------------------------------------------------------------')
     print('The Python Vehicle Simulator')
     print('---------------------------------------------------------------------------------------')
@@ -25,21 +38,8 @@ def printSimInfo():
     print('6 - Ship: linear maneuvering model specified by L, B and T using the Clarke (1983) formulas')
     print('7 - Offshore supply vessel: controlled by tunnel thrusters and main propellers, L = 76.2 m')
     print('8 - Tanker: rudder-controlled ship model including shallow water effects, L = 304.8 m')
-    # print('9 - Remus100: AUV controlled by stern planes and a propeller, L = xx m')
-    print('---------------------------------------------------------------------------------------')
-
-    """
-    Constructors used to define the vehicle objects as cases in main.py:
-        vehicle = DSRV('depthAutopilot',60.0) 
-        vehicle = frigate('headingAutopilot',10.0,100.0)    
-        vehicle = otter('headingAutopilot',100.0,0.3,-30.0,200.0) 
-        vehicle = ROVzefakkel('headingAutopilot',3.0,100.0)
-        vehicle = semisub('DPcontrol',10.0,2.0,20.0,0.5,-20.0)
-        vehicle = shipClarke83('headingAutopilot',-20.0,70,8,6,0.7,0.5,-10.0,1e5)
-        vehicle = supply('DPcontrol',4.0,4.0,100.0,0.5,-20.0)
-        vehicle = tanker('headingAutopilot',-20,0.5,150,20,80)
-    """   
-    
+    print('9 - Remus100: AUV controlled by stern planes, a tail rudder and a propeller, L = 1.6 m')
+    print('---------------------------------------------------------------------------------------')    
     
 ###############################################################################    
 # Function printVehicleinfo(vehicle)
@@ -80,6 +80,8 @@ def simulate(N, sampleTime, vehicle):
             u_control = vehicle.depthAutopilot(eta,nu,sampleTime)
         elif (vehicle.controlMode == 'headingAutopilot'):
             u_control = vehicle.headingAutopilot(eta,nu,sampleTime)   
+        elif (vehicle.controlMode == 'depthHeadingAutopilot'):
+            u_control = vehicle.depthHeadingAutopilot(eta,nu,sampleTime)             
         elif (vehicle.controlMode == 'DPcontrol'):
             u_control = vehicle.DPcontrol(eta,nu,sampleTime)                   
         elif (vehicle.controlMode == 'stepInput'):
