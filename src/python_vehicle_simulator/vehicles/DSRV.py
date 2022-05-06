@@ -22,7 +22,7 @@ Methods:
        u_control = delta_s (rad):  DSRV stern plane.
 
 u = depthAutopilot(eta,nu,sampleTime) 
-    PID controller for automatic heading control based on pole placement.
+    PID controller for automatic depth control based on pole placement.
        
 u = stepInput(t) generates stern plane step inputs.   
        
@@ -42,7 +42,10 @@ from python_vehicle_simulator.control import PIDpolePlacement
 class DSRV:
     """
     DSRV()                      Step input, rudder angle
-    DSRV('deptAutopilot',z_d)   Depth autopilot, desired depth (m)
+    DSRV('deptAutopilot',z_d)   Depth autopilot
+    
+    Inputs:
+        z_d: desired depth, positive downwards (m)
     """
 
     def __init__(self, controlSystem="stepInput", r=0):
