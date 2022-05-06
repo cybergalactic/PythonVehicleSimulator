@@ -9,13 +9,13 @@ shipClarke83.py:
        
    shipClarke83()                           
        Step input, rudder angle     
-   shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_current,beta_c,tau_X)
+   shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_c,beta_c,tau_X)
         psi_d: desired yaw angle (deg)
         L: ship length (m)
         B: ship beam (m)
         T: ship draft (m)
         Cb: block coefficient (-)
-        V_current: current speed (m/s)
+        V_c: current speed (m/s)
         beta_c: current direction (deg)
         tau_X: surge force, pilot input (N)                    
 
@@ -53,19 +53,29 @@ class shipClarke83:
         Rudder angle step inputs
     shipClarke83('headingAutopilot', psi_d, L, B, T, Cb, V_c, beta_c, tau_X)
         Heading autopilot
+        
+    Inputs:
+        psi_d: desired yaw angle (deg)
+        L: ship length (m)
+        B: ship beam (m)
+        T: ship draft (m)
+        Cb: block coefficient (-)
+        V_c: current speed (m/s)
+        beta_c: current direction (deg)
+        tau_X: surge force, pilot input (N) 
     """
 
     def __init__(
         self,
         controlSystem="stepInput",
-        r=0,
-        L=50.0,
-        B=7.0,
-        T=5.0,
-        Cb=0.7,
-        V_current=0,
-        beta_current=0,
-        tau_X=1e5,
+        r = 0,
+        L = 50.0,
+        B = 7.0,
+        T = 5.0,
+        Cb = 0.7,
+        V_current = 0,
+        beta_current = 0,
+        tau_X = 1e5,
     ):
 
         if controlSystem == "headingAutopilot":
@@ -104,7 +114,7 @@ class shipClarke83:
 
         # Heading autopilot
         self.e_int = 0  # integral state
-        self.wn = 0.5  # PID pole placement
+        self.wn = 0.5   # PID pole placement
         self.zeta = 1
 
         # Reference model
