@@ -61,7 +61,6 @@ class remus100:
         psi_d: desired heading angle (deg)
         V_c: current speed (m/s)
         beta_c: current direction (deg)
-                
     """
 
     def __init__(
