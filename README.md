@@ -21,6 +21,7 @@ The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems S
         shipClarke83.py         - Ship, linear maneuvering model specified by L, B and T using the Clarke (1983) formulas
         supply.py               - Offshore supply vessel controlled by tunnel thrusters and main propellers, L = 76.2 m
         tanker.py               - Tanker, rudder-controlled ship model including shallow water effects, L = 304.8 m
+        remus100.py             - Cylinder-shaped AUV controlled by a rudder, stern planes and a propeller, L = 1.6 m        
         
     Animated GIF:
     /src/python_vehicle_simulator/ 
@@ -45,5 +46,3 @@ where ```<path>``` is the path of the downloaded repository.
 1. Clone the repository.
 2. In the root of the repository:
 ```pip install -e <path>```
-
-
