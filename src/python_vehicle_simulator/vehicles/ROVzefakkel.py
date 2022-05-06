@@ -52,9 +52,13 @@ from python_vehicle_simulator.control import PIDpolePlacement
 class ROVzefakkel:
     """
     ROVzefakkel()                               Step input, rudder angle
-    ROVzefakkel('headingAutopilot',U,psi_d)     Heading autopilot, speed (m/s)
-                                                    and desired heading(deg)
+    ROVzefakkel('headingAutopilot',U,psi_d)     Heading autopilot
+    
+    Inputs:
+        U: cruise speed (m/s)
+        psi_d: desired heading angle (deg)
     """        
+    
     def __init__(self, controlSystem = 'stepInput', U = 3.0, r = 0.0):
                                   
         if (controlSystem == 'headingAutopilot'):
