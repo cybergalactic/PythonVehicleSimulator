@@ -54,6 +54,13 @@ class semisub:
     """
     semisub()                                      Propeller step inputs 
     semisub('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)  DP control system
+    
+    Inputs:
+        x_d: desired x position (m)
+        y_d: desired y position (m)
+        psi_d: desired yaw angle (deg)
+        V_c: current speed (m/s)
+        beta_c: current direction (deg)
     """
 
     def __init__(
