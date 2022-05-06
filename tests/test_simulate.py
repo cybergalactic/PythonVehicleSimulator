@@ -77,3 +77,7 @@ def test_frigate():
 def test_tanker():
     vehicle = vehicles.tanker()
     simulate(N, sampleTime, vehicle)
+    
+def test_remus100():
+    vehicle = vehicles.remus100()
+    simulate(N, sampleTime, vehicle)    
