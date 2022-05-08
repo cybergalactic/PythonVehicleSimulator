@@ -10,27 +10,28 @@ DSRV.py:
         
     DSRV()                      
         Step input, rudder angel
+        
     DSRV('deptAutopilot',z_d)  
-         Depth autopilot with option:
-            z_d: desired depth (m)
+        z_d: desired depth (m)
         
 Methods:   
         
-[nu, u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) returns
-       nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
+    [nu, u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) returns
+         nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
        
-       u_control = delta_s (rad):  DSRV stern plane.
+         u_control = delta_s (rad):  DSRV stern plane.
 
-u = depthAutopilot(eta,nu,sampleTime) 
-    PID controller for automatic depth control based on pole placement.
+    u = depthAutopilot(eta,nu,sampleTime) 
+        PID controller for automatic depth control based on pole placement.
        
-u = stepInput(t) generates stern plane step inputs.   
+    u = stepInput(t) generates stern plane step inputs.   
        
 References: 
-  A. J. Healey (1992). Marine Vehicle Dynamics Lecture Notes and 
-    Problem Sets, Naval Postgraduate School (NPS), Monterey, CA.
-  T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-     Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
+    
+    A. J. Healey (1992). Marine Vehicle Dynamics Lecture Notes and 
+        Problem Sets, Naval Postgraduate School (NPS), Monterey, CA.
+    T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
+        Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
 """
@@ -62,10 +63,10 @@ class DSRV:
 
         # Initialize the DSRV model
         self.name = "DSRV (see 'DSRV.py' for more details)"
-        self.L = 5.0        # Length
-        self.deltaMax = 20  # max stern plane angle (deg)
-        self.T_delta = 1.0  # rudder time constants (s)
-        self.U0 = 4.11      # cruise speed: 4.11 m/s = 8 knots
+        self.L = 5.0            # Length
+        self.deltaMax = 20      # max stern plane angle (deg)
+        self.T_delta = 1.0      # rudder time constants (s)
+        self.U0 = 4.11          # cruise speed: 4.11 m/s = 8 knots
         self.W0 = 0
         self.nu = np.array([self.U0, 0, self.W0, 0, 0, 0], float)  # velocity vector
         self.u_actual = np.array([0], float)  # control input vector
@@ -108,6 +109,7 @@ class DSRV:
         self.a_d = 0
         self.wn_d = self.wn / 5
         self.zeta_d = 1
+
 
     def dynamics(self, eta, nu, u_actual, u_control, sampleTime):
         """
@@ -155,6 +157,7 @@ class DSRV:
 
         return nu, u_actual
 
+
     def stepInput(self, t):
         """
         delta_c = stepInput(t) generates stern plane step inputs.
@@ -169,23 +172,24 @@ class DSRV:
 
         return u_control
 
+
     def depthAutopilot(self, eta, nu, sampleTime):
         """
         delta_c = depthAutopilot(eta,nu,sampleTime) is a PID controller for
         automatic depth control based on pole placement.
         """
-        z = eta[2]  # heave position
-        w = nu[2]  # heave velocity
-        e_z = z - self.z_d  # heave position tracking error
-        e_w = w - self.w_d  # heave velocity tracking error
-        r = self.ref  # heave setpoint
+        z = eta[2]              # heave position
+        w = nu[2]               # heave velocity
+        e_z = z - self.z_d      # heave position tracking error
+        e_w = w - self.w_d      # heave velocity tracking error
+        r = self.ref            # heave setpoint
 
-        wn = self.wn  # PID natural frequency
-        zeta = self.zeta  # PID natural relative damping factor
-        wn_d = self.wn_d  # reference model natural frequency
-        zeta_d = self.zeta_d  # reference model relative damping factor
+        wn = self.wn            # PID natural frequency
+        zeta = self.zeta        # PID natural relative damping factor
+        wn_d = self.wn_d        # reference model natural frequency
+        zeta_d = self.zeta_d    # reference model relative damping factor
 
-        m = self.m11  # mass in heave including added mass
+        m = self.m11            # mass in heave including added mass
         d = 0
         k = 0
 
