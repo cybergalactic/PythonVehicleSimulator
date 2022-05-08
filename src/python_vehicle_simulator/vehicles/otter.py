@@ -40,8 +40,8 @@ Author:     Thor I. Fossen
 """
 import numpy as np
 import math
-from python_vehicle_simulator.control import PIDpolePlacement
-from python_vehicle_simulator.gnc import Smtrx, Hmtrx, m2c, crossFlowDrag, sat
+from python_vehicle_simulator.lib.control import PIDpolePlacement
+from python_vehicle_simulator.lib.gnc import Smtrx, Hmtrx, m2c, crossFlowDrag, sat
 
 # Class Vehicle
 class otter:
