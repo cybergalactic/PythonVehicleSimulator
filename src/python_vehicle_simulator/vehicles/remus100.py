@@ -45,8 +45,8 @@ Author:     Thor I. Fossen
 """
 import numpy as np
 import math
-from python_vehicle_simulator.control import PIDpolePlacement
-from python_vehicle_simulator.gnc import crossFlowDrag,forceLiftDrag,Hmtrx,m2c,gvect
+from python_vehicle_simulator.lib.control import PIDpolePlacement
+from python_vehicle_simulator.lib.gnc import crossFlowDrag,forceLiftDrag,Hmtrx,m2c,gvect
 
 # Class Vehicle
 class remus100:
