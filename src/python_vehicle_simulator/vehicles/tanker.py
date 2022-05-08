@@ -39,8 +39,8 @@ Author:     Thor I. Fossen
 import numpy as np
 import math
 import sys
-from python_vehicle_simulator.control import PIDpolePlacement
-from python_vehicle_simulator.models import clarke83
+from python_vehicle_simulator.lib.control import PIDpolePlacement
+from python_vehicle_simulator.lib.models import clarke83
 
 # Class Vehicle
 class tanker:
