@@ -8,7 +8,8 @@ tanker.py:
        
    tanker()                           
        Step input, rudder angle     
-   tanker('headingAutopilot',psi_d,V_current,beta_c,depth,rpm)
+
+    tanker('headingAutopilot',psi_d,V_current,beta_c,depth,rpm)
         psi_d:  desired yaw angle (deg)
         V_c:    current speed (m/s)
         beta_c: current direction (deg)
@@ -17,22 +18,22 @@ tanker.py:
                    
 Methods:
         
-[nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime ) returns 
-    nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
+    [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime ) returns 
+        nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
 
-u_control = delta_r (rad) is for the ship rudder.
+        u_control = delta_r (rad) is for the ship rudder.
 
-u = headingAutopilot(eta,nu,sampleTime) 
-    PID controller for automatic heading control based on pole placement.
+    u = headingAutopilot(eta,nu,sampleTime) 
+        PID controller for automatic heading control based on pole placement.
        
-u = stepInput(t) generates rudder step inputs.   
+    u = stepInput(t) generates rudder step inputs.   
        
 References: 
-  W. B. Van Berlekom and T. A. Goddard (1972). Maneuvering of Large Tankers,
-     Transaction of SNAME, Vol. 80, pp. 264-298.
-  T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-     Control. 2nd. Edition, Wiley. 
-     URL: www.fossen.biz/wiley            
+    
+    W. B. Van Berlekom and T. A. Goddard (1972). Maneuvering of Large Tankers,
+        Transaction of SNAME, Vol. 80, pp. 264-298.
+    T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
+        Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
 """
@@ -40,7 +41,6 @@ import numpy as np
 import math
 import sys
 from python_vehicle_simulator.lib.control import PIDpolePlacement
-from python_vehicle_simulator.lib.models import clarke83
 
 # Class Vehicle
 class tanker:
@@ -61,33 +61,37 @@ class tanker:
     def __init__(
         self,
         controlSystem="stepInput",
-        r=0,
-        V_current=0,
-        beta_current=0,
-        depth=20.0,
-        rpm=80.0,
+        r = 0,
+        V_current = 0,
+        beta_current = 0,
+        depth = 20.0,
+        rpm = 80.0,
     ):
 
+        # Constants
+        D2R = math.pi / 180     # deg2rad
+        
         if controlSystem == "headingAutopilot":
-            self.controlDescription = "Heading autopilot, psi_d = " + str(r) + " deg"
+            self.controlDescription = ("Heading autopilot, psi_d = " 
+            + str(r) + " deg")
         else:
             self.controlDescription = "Step input for delta_r"
             controlSystem = "stepInput"
 
         self.ref = r
         self.V_c = V_current
-        self.beta_c = beta_current
+        self.beta_c = beta_current * D2R
         self.waterDdepth = depth
         self.n_c = rpm
         self.controlMode = controlSystem
 
         # Initialize the ship model
         self.name = "Tanker (see 'tanker.py' for more details)"
-        self.L = 304.8  # length (m)
-        self.T = 18.46  # draft (m)
+        self.L = 304.8      # length (m)
+        self.T = 18.46      # draft (m)
         self.deltaMax = 30  # max rudder angle (deg)
         self.DdeltaMax = 5  # max rudder rate (deg/s)
-        self.nMax = 90.0  # max propeller shaft speed (rpm)
+        self.nMax = 90.0    # max propeller shaft speed (rpm)
 
         if rpm < 10.0 or rpm > self.nMax:
             sys.exit("The RPM value should be in the interval 10-90")
@@ -114,6 +118,7 @@ class tanker:
         self.wn_d = self.wn / 5  # desired natural frequency in yaw
         self.zeta_d = 1.0  # desired relative damping ratio in yaw
 
+
     def dynamics(self, eta, nu, u_actual, u_control, sampleTime):
         """
         [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) integrates
@@ -125,10 +130,10 @@ class tanker:
 
         # States and controls
         delta_c = u_control[0]  # autopilot rudder command
-        delta = u_actual[0]  # actual rudder angle (rad)
-        n = self.n_c / 60.0  # propeller shaft speed (rps)
-        u = nu[0]
-        v = nu[1]
+        delta = u_actual[0]     # actual rudder angle (rad)
+        n = self.n_c / 60.0     # propeller shaft speed (rps)
+        # u = nu[0]
+        # v = nu[1]
         r = nu[5]
 
         # Current velocities
@@ -157,13 +162,13 @@ class tanker:
         Tun = -0.00063
         Tnn = 0.0000354
 
-        m11 = 1.050  # 1 - Xudot
-        m22 = 2.020  # 1 - Yvdot
-        m33 = 0.1232  # kz^2 - Nrdot
+        m11 = 1.050     # 1 - Xudot
+        m22 = 2.020     # 1 - Yvdot
+        m33 = 0.1232    # kz^2 - Nrdot
 
-        d11 = 2.020  # 1 + Xvr
-        d22 = -0.752  # Yur - 1
-        d33 = -0.231  # Nur - xG
+        d11 = 2.020     # 1 + Xvr
+        d22 = -0.752    # Yur - 1
+        d33 = -0.231    # Nur - xG
 
         Xuuz = -0.0061
         YT = 0.04
@@ -274,6 +279,7 @@ class tanker:
 
         return nu, u_actual
 
+
     def stepInput(self, t):
         """
         delta_c = stepInput(t) generates rudder step inputs.
@@ -286,6 +292,7 @@ class tanker:
 
         return u_control
 
+
     def headingAutopilot(self, eta, nu, sampleTime):
         """
         delta_c = headingAutopilot(eta,nu,sampleTime) is a PID controller
@@ -294,16 +301,16 @@ class tanker:
         tau_N = m * a_d + d * r_d
               - Kp * ( ssa( psi-psi_d ) + Td * (r - r_d) + (1/Ti) * e_int )
         """
-        psi = eta[5]  # yaw angle
-        r = nu[5]  # yaw rate
-        e_psi = psi - self.psi_d  # yaw angle tracking error
-        e_r = r - self.r_d  # yaw rate tracking error
+        psi = eta[5]                        # yaw angle
+        r = nu[5]                           # yaw rate
+        e_psi = psi - self.psi_d            # yaw angle tracking error
+        e_r = r - self.r_d                  # yaw rate tracking error
         psi_ref = self.ref * math.pi / 180  # yaw angle setpoint
 
-        wn = self.wn  # PID natural frequency
-        zeta = self.zeta  # PID natural relative damping factor
-        wn_d = self.wn_d  # reference model natural frequency
-        zeta_d = self.zeta_d  # reference model relative damping factor
+        wn = self.wn            # PID natural frequency
+        zeta = self.zeta        # PID natural relative damping factor
+        wn_d = self.wn_d        # reference model natural frequency
+        zeta_d = self.zeta_d    # reference model relative damping factor
 
         m = 500
         d = 0.0
