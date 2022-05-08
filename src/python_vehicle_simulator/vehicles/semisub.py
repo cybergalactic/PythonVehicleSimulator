@@ -21,7 +21,7 @@ Methods:
     returns nu[k+1] and u_actual[k+1] using Euler's method. 
     The control inputs are:
 
-    u_control = n  (RPM)
+    u_control = n (RPM)
     n = [ #1 Bow tunnel thruster (RPM)
           #2 Bow tunnel thruster (RPM)             
           #3 Aft tunnel thruster (RPM)
@@ -38,9 +38,9 @@ n = DPcontrol(eta,nu,sampleTime)
 n = stepInput(t) generates propellers step inputs n = [n1, n2, n3, n4, n5, n6].
     
 Reference: 
-  T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-     Control. 2nd. Edition, Wiley. 
-     URL: www.fossen.biz/wiley            
+
+    T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
+         Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
 """
@@ -72,6 +72,9 @@ class semisub:
         V_current=0,
         beta_current=0,
     ):
+        
+        # Constants
+        D2R = math.pi / 180                 # deg2rad
 
         if controlSystem == "DPcontrol":
             self.controlDescription = (
@@ -88,16 +91,16 @@ class semisub:
             self.controlDescription = "Step inputs n = [n1, n2, n3, n4, n5, n6]"
             controlSystem = "stepInput"
 
-        self.ref = np.array([r_x, r_y, (math.pi / 180) * r_n], float)
+        self.ref = np.array([r_x, r_y, r_n * D2R], float)
         self.V_c = V_current
-        self.beta_c = beta_current
+        self.beta_c = beta_current * D2R
         self.controlMode = controlSystem
 
         # Initialize the semisub model
         self.L = 84.6   # Length (m)
         self.T_n = 1.0  # propeller revolution time constants (s)
         self.n_max = np.array(                      # RPM saturation limits (N)  
-            [250, 250, 160, 160, 160, 160], float
+            [160, 160, 160, 160, 250, 250], float
         )                                     
         self.nu = np.array([0, 0, 0, 0, 0, 0], float)        # velocity vector
         self.u_actual = np.array([0, 0, 0, 0, 0, 0], float)  # RPM inputs
@@ -173,7 +176,7 @@ class semisub:
         self.x_d = 0.0  # setpoints
         self.y_d = 0.0
         self.psi_d = 0.0
-        self.wn = np.diag([0.2, 0.2, 0.1])  # PID pole placement
+        self.wn = np.diag([0.15, 0.15, 0.05])  # PID pole placement
         self.zeta = np.diag([1.0, 1.0, 1.0])
 
     def dynamics(self, eta, nu, u_actual, u_control, sampleTime):
@@ -215,6 +218,7 @@ class semisub:
 
         return nu, u_actual
 
+
     def controlAllocation(self, tau3):
         """
         u_alloc  = controlAllocation(tau3),  tau3 = [tau_X, tau_Y, tau_N]'
@@ -224,6 +228,7 @@ class semisub:
         u_alloc = np.matmul(B_pseudoInv, tau3)
 
         return u_alloc
+
 
     def DPcontrol(self, eta, nu, sampleTime):
         """
