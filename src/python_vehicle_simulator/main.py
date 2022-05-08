@@ -14,7 +14,7 @@ import os
 import webbrowser
 import matplotlib.pyplot as plt
 from python_vehicle_simulator.vehicles import *
-from python_vehicle_simulator import *
+from python_vehicle_simulator.lib import *
 
 # Simulation parameters: 
 sampleTime = 0.02                   # sample time
