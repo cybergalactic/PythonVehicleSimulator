@@ -16,38 +16,38 @@ supply.py:
         
 Methods:
     
-[nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime)
-    returns nu[k+1] and u_actual[k+1] using Euler's method. 
-    The control inputs are:
+    [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime)
+        returns nu[k+1] and u_actual[k+1] using Euler's method. 
+        The control inputs are:
 
-    u_control = n  (RPM)
-    n = [ #1 Bow thruster (RPM) 
-          #2 Bow thruster (RPM)
-          #3 Right main propeller (RPM)
-          #4 Left main propeller (RPM) ]
+            u_control = n  (RPM)
+            n = [ #1 Bow thruster (RPM) 
+                 #2 Bow thruster (RPM)
+                 #3 Right main propeller (RPM)
+                 #4 Left main propeller (RPM) ]
 
-u_alloc = controlAllocation(tau)
-    Control allocation based on the pseudoinverse                 
+    u_alloc = controlAllocation(tau)
+        Control allocation based on the pseudoinverse                 
 
-n = DPcontrol(eta,nu,sampleTime)
-    Nonlinear PID controller for DP based on pole placement.    
+    n = DPcontrol(eta,nu,sampleTime)
+        Nonlinear PID controller for DP based on pole placement.    
 
-n = stepInput(t) generates propellers step inputs.
+    n = stepInput(t) generates propellers step inputs.
     
 References: 
-  T. I. Fossen, S. I. Sagatun and A. J. Sorensen (1996)
-     Identification of Dynamically Positioned Ships
-     Journal of Control Engineering Practice CEP-4(3):369-376
-  T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-     Control. 2nd. Edition, Wiley. 
-     URL: www.fossen.biz/wiley            
+    
+    T. I. Fossen, S. I. Sagatun and A. J. Sorensen (1996)
+         Identification of Dynamically Positioned Ships
+         Journal of Control Engineering Practice CEP-4(3):369-376
+    T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
+         Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
 """
 import numpy as np
 import math
 from python_vehicle_simulator.lib.control import DPpolePlacement
-from python_vehicle_simulator.lib.gnc import sat, ssa
+from python_vehicle_simulator.lib.gnc import sat
 
 # Class Vehicle
 class supply:
@@ -72,6 +72,10 @@ class supply:
         V_current = 0,
         beta_current = 0,
     ):
+        
+        # Constants
+        D2R = math.pi / 180     # deg2rad
+        g = 9.81                # acceleration of gravity (m/s^2)
 
         if controlSystem == "DPcontrol":
             self.controlDescription = (
@@ -88,14 +92,15 @@ class supply:
             self.controlDescription = "Step inputs for n = [n1, n2, n3, n4]"
             controlSystem = "stepInput"
 
-        self.ref = np.array([r_x, r_y, (math.pi / 180) * r_n], float)
+        self.ref = np.array([r_x, r_y, r_n * D2R], float)
         self.V_c = V_current
-        self.beta_c = beta_current
+        self.beta_c = beta_current * D2R
         self.controlMode = controlSystem
 
         # Initialize the supply vessel model
-        self.L = 76.2  # Length (m)
-        self.T_n = 1.0  # prop. rev. time constant (s)
+        m = 6000.0e3        # mass (kg)
+        self.L = 76.2       # Length (m)
+        self.T_n = 1.0      # prop. rev. time constant (s)
         self.n_max = np.array([250, 250, 160, 160], float)  # RPM saturation limits (N)
         self.nu = np.array([0, 0, 0, 0, 0, 0], float)  # velocity vector
         self.u_actual = np.array([0, 0, 0, 0], float)  # RPM inputs
@@ -110,11 +115,6 @@ class supply:
             "#4 Left main propeller (RPM)",
         ]
         self.dimU = len(self.controls)
-
-        # Constants
-        g = 9.81  # acceleration of gravity (m/s^2)
-        rho = 1025  # density of water
-        m = 6000.0e3  # mass (kg)
 
         # Thrust coefficient and configuration matrices (Fossen 2021, Ch. 11.2)
         K = np.diag([2.4, 2.4, 17.6, 17.6])
@@ -146,6 +146,7 @@ class supply:
         self.psi_d = 0.0
         self.wn = np.diag([0.3, 0.3, 0.1])  # PID pole placement
         self.zeta = np.diag([1.0, 1.0, 1.0])
+
 
     def dynamics(self, eta, nu, u_actual, u_control, sampleTime):
         """
@@ -199,6 +200,7 @@ class supply:
 
         return u_alloc
 
+
     def DPcontrol(self, eta, nu, sampleTime):
         """
         u = DPcontrol(eta,nu,sampleTime) is a nonlinear PID controller
@@ -235,6 +237,7 @@ class supply:
         u_control = n
 
         return u_control
+
 
     def stepInput(self, t):
         """
