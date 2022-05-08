@@ -7,6 +7,7 @@ otter.py:
 
     otter()                                          
         Step inputs for propeller revolutions n1 and n2
+        
     otter('headingAutopilot',psi_d,V_current,beta_current,tau_X)  
        Heading autopilot with options:
           psi_d: desired yaw angle (deg)
@@ -20,8 +21,8 @@ Methods:
     nu[k+1] and u_actual[k+1] using Euler's method. The control inputs are:
 
     u_control = [ n1 n2 ]' where 
-      n1: propeller shaft speed, left (rad/s)
-      n2: propeller shaft speed, right (rad/s)
+        n1: propeller shaft speed, left (rad/s)
+        n2: propeller shaft speed, right (rad/s)
 
 u = headingAutopilot(eta,nu,sampleTime) 
     PID controller for automatic heading control based on pole placement.
@@ -61,9 +62,14 @@ class otter:
         controlSystem="stepInput", 
         r = 0, 
         V_current = 0, 
-        beta_current = 0, 
+        beta_current = 0,
         tau_X = 120
     ):
+        
+        # Constants
+        D2R = math.pi / 180     # deg2rad
+        g = 9.81                # acceleration of gravity (m/s^2)
+        rho = 1026              # density of water (kg/m^3)
 
         if controlSystem == "headingAutopilot":
             self.controlDescription = (
@@ -77,7 +83,7 @@ class otter:
 
         self.ref = r
         self.V_c = V_current
-        self.beta_c = beta_current
+        self.beta_c = beta_current * D2R
         self.controlMode = controlSystem
         self.tauX = tau_X  # surge force (N)
 
@@ -95,12 +101,9 @@ class otter:
         ]
         self.dimU = len(self.controls)
 
-        # Constants
-        g = 9.81    # acceleration of gravity (m/s^2)
-        rho = 1025  # density of water
-
-        m = 55.0    # mass (kg)
-        mp = 25.0   # Payload (kg)
+        # Vehicle parameters
+        m = 55.0                                # mass (kg)
+        mp = 25.0                               # Payload (kg)
         self.m_total = m + mp
         rp = np.array([0, 0, -0.35], float)     # location of payload (m)
         rg = np.array([0.2, 0, -0.2], float)    # CG for hull only (m)
@@ -219,6 +222,7 @@ class otter:
         self.a_d = 0
         self.wn_d = self.wn / 5  # desired natural frequency in yaw
         self.zeta_d = 1  # desired relative damping ratio
+
 
     def dynamics(self, eta, nu, u_actual, u_control, sampleTime):
         """
