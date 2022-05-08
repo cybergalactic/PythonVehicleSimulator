@@ -46,8 +46,8 @@ Author:     Thor I. Fossen
 """
 import numpy as np
 import math
-from python_vehicle_simulator.control import DPpolePlacement
-from python_vehicle_simulator.gnc import sat, ssa
+from python_vehicle_simulator.lib.control import DPpolePlacement
+from python_vehicle_simulator.lib.gnc import sat, ssa
 
 # Class Vehicle
 class supply:
