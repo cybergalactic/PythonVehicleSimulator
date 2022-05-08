@@ -8,7 +8,8 @@ shipClarke83.py:
    Clarke (1983).  
        
    shipClarke83()                           
-       Step input, rudder angle     
+       Step input, rudder angle    
+       
    shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_c,beta_c,tau_X)
         psi_d: desired yaw angle (deg)
         L: ship length (m)
@@ -21,23 +22,23 @@ shipClarke83.py:
 
 Methods:
         
-[nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime ) returns 
-    nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
+    [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime ) returns 
+        nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
 
-u_control = delta_r (rad) is for the ship rudder.
+        u_control = delta_r (rad) is for the ship rudder.
 
-u = headingAutopilot(eta,nu,sampleTime) 
-    PID controller for automatic heading control based on pole placement.
+    u = headingAutopilot(eta,nu,sampleTime) 
+        PID controller for automatic heading control based on pole placement.
        
-u = stepInput(t) generates rudder step inputs.   
+    u = stepInput(t) generates rudder step inputs.   
        
 References: 
-  D. Clarke, P. Gedling and G. Hine (1983). The Application of Manoeuvring 
-      Criteria in Hull Design using Linear Theory. Transactions of the Royal 
-      Institution of Naval Architects (RINA), 125, pp. 45-68.
-  T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-     Control. 2nd. Edition, Wiley. 
-     URL: www.fossen.biz/wiley            
+
+    D. Clarke, P. Gedling and G. Hine (1983). The Application of Manoeuvring 
+        Criteria in Hull Design using Linear Theory. Transactions of the Royal 
+        Institution of Naval Architects (RINA), 125, pp. 45-68.
+    T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
+         Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
 """
@@ -77,6 +78,10 @@ class shipClarke83:
         beta_current = 0,
         tau_X = 1e5,
     ):
+        
+        # Constants
+        D2R = math.pi / 180     # deg2rad
+        self.rho = 1026         # density of water (kg/m^3)
 
         if controlSystem == "headingAutopilot":
             self.controlDescription = "Heading autopilot, psi_d = " + str(r) + " deg"
@@ -87,7 +92,7 @@ class shipClarke83:
 
         self.ref = r
         self.V_c = V_current
-        self.beta_c = beta_current
+        self.beta_c = beta_current * D2R
         self.controlMode = controlSystem
 
         # Initialize the ship model
@@ -96,7 +101,6 @@ class shipClarke83:
         self.B = B  # beam (m)
         self.T = T  # Draft (m)
         self.Cb = Cb  # block coefficient
-        self.rho = 1025  # density of water (kg/m^3)
         self.Lambda = 0.7  # rudder aspect ratio:  Lambda = b**2 / AR
         self.tau_X = tau_X  # surge force (N), pilot input
         self.deltaMax = 30  # max rudder angle (deg)
@@ -114,12 +118,12 @@ class shipClarke83:
 
         # Heading autopilot
         self.e_int = 0  # integral state
-        self.wn = 0.5   # PID pole placement
+        self.wn = 0.3   # PID pole placement
         self.zeta = 1
 
         # Reference model
-        self.r_max = 1.0 * math.pi / 180  # maximum yaw rate
-        self.psi_d = 0  # angle, angular rate and angular acc. states
+        self.r_max = 1.0 * D2R  # maximum yaw rate
+        self.psi_d = 0          # angle, angular rate and angular acc. states
         self.r_d = 0
         self.a_d = 0
         self.wn_d = self.wn / 5  # desired natural frequency in yaw
