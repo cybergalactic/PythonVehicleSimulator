@@ -46,7 +46,7 @@ Author:     Thor I. Fossen
 import numpy as np
 import math
 import sys
-from python_vehicle_simulator.control import PIDpolePlacement
+from python_vehicle_simulator.lib.control import PIDpolePlacement
 
 # Class Vehicle
 class frigate:
