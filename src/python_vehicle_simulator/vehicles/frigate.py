@@ -18,28 +18,30 @@ frigate.py:
         
     frigate()                      
         Step input, rudder angel
+        
     frigate('headingAutopilot',psi_d)  
          Heading autopilot with option:
             psi_d: desired heading (m)
         
 Methods:   
         
-[nu, u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) returns
-       nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
+    [nu, u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime) returns
+         nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
        
-       u_control = delta (rad):  rudder angle
+        u_control = delta (rad):  rudder angle
 
-u = headingAutopilot(eta,nu,sampleTime) 
-    PID controller for automatic heading control based on pole placement.
+    u = headingAutopilot(eta,nu,sampleTime) 
+        PID controller for automatic heading control based on pole placement.
        
-u = stepInput(t) generates rudder angle step inputs.   
+        u = stepInput(t) generates rudder angle step inputs.   
        
 References: 
-  J. Van Amerongen (1982). Adaptive Steering of Ships – A Model Reference 
-      Approach to Improved Maneuvering and Economical Course Keeping. PhD thesis. 
-      Delft University of Technology, Netherlands.
-  T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-     Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
+    
+    J. Van Amerongen (1982). Adaptive Steering of Ships – A Model Reference 
+          Approach to Improved Maneuvering and Economical Course Keeping. PhD 
+          thesis. Delft University of Technology, Netherlands.
+    T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
+         Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
 """
