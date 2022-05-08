@@ -11,54 +11,58 @@ remus100.py:
        
    remus100()                           
        Step input, stern plane, rudder and propeller revolution     
-   remus100('depthHeadingAutopilot',z_d,psi_d,V_c,beta_c)
+   
+    remus100('depthHeadingAutopilot',z_d,psi_d,n_d,V_c,beta_c)
         z_d: desired depth (m), positive downwards
         psi_d: desired yaw angle (deg)
+        n_d: desired propeller revolution (rpm)
         V_c: current speed (m/s)
         beta_c: current direction (deg)                  
 
 Methods:
         
-[nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime ) returns 
-    nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
+    [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime ) returns 
+        nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
 
-u_control = [ delta_r   rudder angle (rad)
-              delta_s   stern plane angle (rad)
-              n         propeller revolution (rpm) ]
+            u_control = [ delta_r   rudder angle (rad)
+                         delta_s    stern plane angle (rad)
+                         n          propeller revolution (rpm) ]
 
-u = depthHeadingAutopilot(eta,nu,sampleTime) 
-    PID controller for automatic depth and heading control based on pole 
-    placement.
+    u = depthHeadingAutopilot(eta,nu,sampleTime) 
+        PID controller for automatic depth and heading control based on pole 
+        placement.
        
-u = stepInput(t) generates tail rudder, stern planes and RPM step inputs.   
+    u = stepInput(t) generates tail rudder, stern planes and RPM step inputs.   
        
 References: 
- B. Allen, W. S. Vorus and T. Prestero, "Propulsion system performance 
-     enhancements on REMUS AUVs," OCEANS 2000 MTS/IEEE Conference and 
-     Exhibition. Conference Proceedings, 2000, pp. 1869-1873 vol.3, 
-     doi: 10.1109/OCEANS.2000.882209.    
-  T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
-     Control. 2nd. Edition, Wiley. 
-     URL: www.fossen.biz/wiley            
+    
+    B. Allen, W. S. Vorus and T. Prestero, "Propulsion system performance 
+         enhancements on REMUS AUVs," OCEANS 2000 MTS/IEEE Conference and 
+         Exhibition. Conference Proceedings, 2000, pp. 1869-1873 vol.3, 
+         doi: 10.1109/OCEANS.2000.882209.    
+    T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
+         Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
 Author:     Thor I. Fossen
 """
 import numpy as np
 import math
+import sys
 from python_vehicle_simulator.lib.control import PIDpolePlacement
-from python_vehicle_simulator.lib.gnc import crossFlowDrag,forceLiftDrag,Hmtrx,m2c,gvect
+from python_vehicle_simulator.lib.gnc import crossFlowDrag,forceLiftDrag,Hmtrx,m2c,gvect,ssa
 
 # Class Vehicle
 class remus100:
     """
     remus100()
         Rudder angle, stern plane and propeller revolution step inputs
-    remus100('depthHeadingAutopilot',z_d,psi_d,V_c,beta_c) 
+    remus100('depthHeadingAutopilot',z_d,psi_d,n_d,V_c,beta_c) 
         Depth and heading autopilots
         
     Inputs:
         z_d: desired depth, positive downwards (m)
         psi_d: desired heading angle (deg)
+        n_d: desired propeller revolution (rpm)
         V_c: current speed (m/s)
         beta_c: current direction (deg)
     """
@@ -68,31 +72,41 @@ class remus100:
         controlSystem="stepInput",
         r_z = 0,
         r_psi = 0,
+        rpm = 0,
         V_current = 0,
         beta_current = 0,
     ):
 
+        # Constants
+        D2R = math.pi / 180     # deg2rad
+        g = 9.81                # acceleration of gravity (m/s^2)
+        self.rho = 1026         # density of water (kg/m^3)
+        
+        
         if controlSystem == "depthHeadingAutopilot":
             self.controlDescription = (
                 "Depth and heading autopilots, z_d = "
                 + str(r_z) 
-                + "(deg), psi_d = " 
+                + " (deg), psi_d = " 
                 + str(r_psi) 
                 + " deg"
                 )
 
         else:
-            self.controlDescription = "Step inputs for stern planes, rudder and propeller"
+            self.controlDescription = (
+                "Step inputs for stern planes, rudder and propeller")
             controlSystem = "stepInput"
-                
+            
         self.ref_z = r_z
         self.ref_psi = r_psi
+        self.ref_n = rpm
         self.V_c = V_current
         self.beta_c = beta_current
         self.controlMode = controlSystem
         
         # Initialize the AUV model 
-        self.name = "Remus 100 cylinder-shaped AUV (see 'remus100.py' for more details)"
+        self.name = (
+            "Remus 100 cylinder-shaped AUV (see 'remus100.py' for more details)")
         self.L = 1.6                # length (m)
         self.diam = 0.19            # cylinder diameter (m)
         
@@ -106,10 +120,6 @@ class remus100:
             ]
         self.dimU = len(self.controls) 
         
-        # Constants
-        D2R = math.pi / 180     # deg2rad
-        g = 9.81                # acceleration of gravity (m/s^2)
-        self.rho = 1026         # density of water (kg/m^3)
 
         # Actuator dynamics
         self.deltaMax_r = 30 * D2R  # max rudder angle (rad)
@@ -117,6 +127,12 @@ class remus100:
         self.nMax = 1525            # max propeller revolution (rpm)    
         self.T_delta = 1.0          # rudder/stern plane time constant (s)
         self.T_n = 1.0              # propeller time constant (s)
+        
+        if rpm < 0.0 or rpm > self.nMax:
+            sys.exit("The RPM value should be in the interval 0-%s", (self.nMax))
+        
+        if r_z > 100.0 or r_z < 0.0:
+            sys.exit('desired depth must be between 0-100 m')    
         
         # Hydrodynamics (Fossen 2021, Section 8.4.2)    
         self.S = 0.7 * self.L * self.diam    # S = 70% of rectangle L * diam
@@ -132,8 +148,8 @@ class remus100:
         self.CD_0 = Cd * math.pi * b**2 / self.S
         
         # Rigid-body mass matrix expressed in CO
-        m = 4/3 * math.pi * self.rho * a * b**2      # mass of spheriod 
-        Ix = (2/5) * m * b**2                   # moment of inertia
+        m = 4/3 * math.pi * self.rho * a * b**2     # mass of spheriod 
+        Ix = (2/5) * m * b**2                       # moment of inertia
         Iy = (1/5) * m * (a**2 + b**2)
         Iz = Iy
         MRB_CG = np.diag([ m, m, m, Ix, Iy, Iz ])   # MRB expressed in the CG     
@@ -151,7 +167,7 @@ class remus100:
         # Lamb's k-factors
         e = math.sqrt( 1-(b/a)**2 )
         alpha_0 = ( 2 * (1-e**2)/pow(e,3) ) * ( 0.5 * math.log( (1+e)/(1-e) ) - e )  
-        beta_0  = 1/(e**2) - (1-e**2) / ( 2*pow(e,3) * math.log( (1+e)/(1-e) ) )
+        beta_0  = 1/(e**2) - (1-e**2) / (2*pow(e,3)) * math.log( (1+e)/(1-e) )
 
         k1 = alpha_0 / (2 - alpha_0)
         k2 = beta_0  / (2 - beta_0)
@@ -160,7 +176,7 @@ class remus100:
 
         # Added mass system matrix expressed in the CO
         self.MA = np.diag([ m*k1, m*k2, m*k2, MA_44, k_prime*Iy, k_prime*Iy ])
-        
+          
         # Mass matrix including added mass
         self.M = self.MRB + self.MA
         self.Minv = np.linalg.inv(self.M)
@@ -171,15 +187,15 @@ class remus100:
         self.w_pitch = math.sqrt( self.W * ( self.r_bg[2]-self.r_bb[2] ) / 
             self.M[4][4] )
             
-        # Tail rudder (single)
-        self.CL_delta_r = 0.5        # rudder lift coefficient
-        self.A_r = 0.10 * 0.05       # rudder area (m2)
-        self.x_r = -a                # rudder x-position (m)
+        # Tail rudder parameters (single)
+        self.CL_delta_r = 0.5       # rudder lift coefficient
+        self.A_r = 0.10 * 0.05      # rudder area (m2)
+        self.x_r = -a               # rudder x-position (m)
 
-        # Stern plane (double)
-        self.CL_delta_s = 0.7        # stern-plane lift coefficient
-        self.A_s = 2 * 0.10 * 0.05   # stern-plane area (m2)
-        self.x_s = -a                # stern-plane z-position (m)
+        # Stern-plane paramaters (double)
+        self.CL_delta_s = 0.7       # stern-plane lift coefficient
+        self.A_s = 2 * 0.10 * 0.05  # stern-plane area (m2)
+        self.x_s = -a               # stern-plane z-position (m)
 
         # Low-speed linear damping matrix parameters
         self.T_surge = 20           # time constant in surge (s)
@@ -189,17 +205,25 @@ class remus100:
         self.zeta_pitch = 0.8       # relative damping ratio in pitch
         self.T_yaw = 5              # time constant in yaw (s)
         
-        """
         # Heading autopilot
-        self.e_psi_int = 0  # integral state
-        self.wn = 0.5       # PID pole placement
-        self.zeta = 1
+        #self.e_psi_int = 0          # integral state
+        #self.wn = 0.5               # PID pole placement
+        #self.zeta = 1
         
         # Depth autopilot
-        self.e_z_int = 0    # integral state
-        self.wn = 0.5       # PID pole placement
-        self.zeta = 1
+        self.wn_d_z = 1/20     # desired natural frequency, reference model
+        self.Kp_z = 0.1        # heave position proportional gain, outer loop
+        self.T_z = 100         # heave position integral time, outer loop
+        wn_b_theta = 2;        # pitch bandwidth, pole placement algorithm 
+        self.Kp_theta = self.M[4][4] * wn_b_theta**2  # pitch PID controller     
+        self.Kd_theta = self.M[4][4] * wn_b_theta - 10.8
+        self.Ki_theta = self.Kp_theta * (wn_b_theta / 10)
 
+        self.z_int = 0         # heave position integral state
+        self.z_d = 0           # desired position, initial state LP filter
+        self.theta_int = 0     # pitch angle integral state
+        
+        """
         # Reference model
         self.r_max = 1.0 * math.pi / 180  # maximum yaw rate
         self.psi_d = 0  # angle, angular rate and angular acc. states
@@ -214,7 +238,7 @@ class remus100:
         self.m_PID = M[2][2]
         self.d_PID = N[2][2]
         self.k_PID = 0
-"""
+        """
 
     def dynamics(self, eta, nu, u_actual, u_control, sampleTime):
         """
@@ -367,7 +391,6 @@ class remus100:
         return nu, u_actual
 
 
-
     def stepInput(self, t):
         """
         u_c = stepInput(t) generates step inputs.
@@ -384,6 +407,39 @@ class remus100:
         if t > 50:
             delta_s = 0     
 
+        u_control = np.array([ delta_r, delta_s, n], float)
+
+        return u_control
+    
+    
+    def depthHeadingAutopilot(self, eta, nu, sampleTime):
+        """
+        [delta_r, delta_s, n] = depthHeadingAutopilot(eta,nu,sampleTime) 
+        simultaneously control the heading and depth using two PID controllers 
+        based on pole placement for different propeller rpm commands.
+        """
+
+        z = eta[2]              # heave position
+        theta = eta[4]          # pitch angle
+        q = nu[4]               # pitch rate
+        z_ref = self.ref_z      # heave setpoint
+        
+        # LP filtered desired depth
+        self.z_d  = math.exp( -sampleTime * self.wn_d_z ) * self.z_d \
+            + ( 1 - math.exp( -sampleTime * self.wn_d_z) ) * z_ref   
+            
+        # depth autopilot (succesive loop closure)
+        theta_d = self.Kp_z * ( (z - self.z_d) + (1/self.T_z) * self.z_int )
+        delta_s = -self.Kp_theta * ssa( theta - theta_d ) - self.Kd_theta * q \
+            - self.Ki_theta * self.theta_int
+
+
+        # Euler's integration method (k+1)
+        self.z_int     += sampleTime * ( z - self.z_d );
+        self.theta_int += sampleTime * ssa( theta - theta_d );
+
+        n = 1525
+        delta_r = 0
         u_control = np.array([ delta_r, delta_s, n], float)
 
         return u_control
