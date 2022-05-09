@@ -11,7 +11,6 @@ Author:     Thor I. Fossen
 """
 
 import numpy as np
-import math
 from python_vehicle_simulator.lib.guidance import refModel3
 from python_vehicle_simulator.lib.gnc import ssa, Rzyx
 
