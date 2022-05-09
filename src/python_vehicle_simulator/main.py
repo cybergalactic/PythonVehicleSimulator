@@ -56,7 +56,7 @@ match no:                       #  the match statement requires Python >= 3.10
     case '6': vehicle = shipClarke83('headingAutopilot',-20.0,70,8,6,0.7,0.5,10.0,1e5)
     case '7': vehicle = supply('DPcontrol',4.0,4.0,100.0,0.5,20.0)
     case '8': vehicle = tanker('headingAutopilot',-20,0.5,150,20,80)
-    case '9': vehicle = remus100('depthHeadingAutopilot',30,-20,1525,0.5,170)     
+    case '9': vehicle = remus100('depthHeadingAutopilot',30,50,1525,0.5,170)     
     case _: print('Error: Not a valid simulator option'), sys.exit()
     
 printVehicleinfo(vehicle, sampleTime, N)
