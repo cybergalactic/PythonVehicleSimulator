@@ -204,7 +204,7 @@ class remus100:
         self.zeta_pitch = 0.8       # relative damping ratio in pitch
         self.T_yaw = 5              # time constant in yaw (s)
         
-        # Heading autopilot
+        # TODO: Heading autopilot
         #self.e_psi_int = 0          # integral state
         #self.wn = 0.5               # PID pole placement
         #self.zeta = 1
@@ -221,22 +221,6 @@ class remus100:
         self.z_d = 0           # desired position, LP filter initial state
         self.theta_int = 0     # pitch angle integral state
         
-        """
-        # Reference model
-        self.r_max = 1.0 * math.pi / 180  # maximum yaw rate
-        self.psi_d = 0  # angle, angular rate and angular acc. states
-        self.r_d = 0
-        self.a_d = 0
-        self.wn_d = self.wn / 5  # desired natural frequency in yaw
-        self.zeta_d = 1  # desired relative damping ratio in yaw
-
-        # controller parameters m, d and k
-        U0 = 3  # cruise speed
-        [M, N] = clarke83(U0, self.L, self.B, self.T, self.Cb, self.R66, 0, self.L)
-        self.m_PID = M[2][2]
-        self.d_PID = N[2][2]
-        self.k_PID = 0
-        """
 
     def dynamics(self, eta, nu, u_actual, u_control, sampleTime):
         """
