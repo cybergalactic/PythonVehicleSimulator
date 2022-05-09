@@ -13,10 +13,10 @@ remus100.py:
        Step input, stern plane, rudder and propeller revolution     
    
     remus100('depthHeadingAutopilot',z_d,psi_d,n_d,V_c,beta_c)
-        z_d: desired depth (m), positive downwards
-        psi_d: desired yaw angle (deg)
-        n_d: desired propeller revolution (rpm)
-        V_c: current speed (m/s)
+        z_d:    desired depth (m), positive downwards
+        psi_d:  desired yaw angle (deg)
+        n_d:    desired propeller revolution (rpm)
+        V_c:    current speed (m/s)
         beta_c: current direction (deg)                  
 
 Methods:
@@ -29,8 +29,8 @@ Methods:
                          n          propeller revolution (rpm) ]
 
     u = depthHeadingAutopilot(eta,nu,sampleTime) 
-        PID controller for automatic depth and heading control based on pole 
-        placement.
+        Simultaneously control of depth and heading using two controllers of 
+        PID type. Propeller rpm is given as a step command.
        
     u = stepInput(t) generates tail rudder, stern planes and RPM step inputs.   
        
@@ -56,14 +56,15 @@ class remus100:
     """
     remus100()
         Rudder angle, stern plane and propeller revolution step inputs
+        
     remus100('depthHeadingAutopilot',z_d,psi_d,n_d,V_c,beta_c) 
         Depth and heading autopilots
         
     Inputs:
-        z_d: desired depth, positive downwards (m)
-        psi_d: desired heading angle (deg)
-        n_d: desired propeller revolution (rpm)
-        V_c: current speed (m/s)
+        z_d:    desired depth, positive downwards (m)
+        psi_d:  desired heading angle (deg)
+        n_d:    desired propeller revolution (rpm)
+        V_c:    current speed (m/s)
         beta_c: current direction (deg)
     """
 
@@ -204,10 +205,19 @@ class remus100:
         self.zeta_pitch = 0.8       # relative damping ratio in pitch
         self.T_yaw = 5              # time constant in yaw (s)
         
-        # TODO: Heading autopilot
-        #self.e_psi_int = 0          # integral state
-        #self.wn = 0.5               # PID pole placement
-        #self.zeta = 1
+        # Heading autopilot
+        self.wn_psi = 0.5           # PID pole placement parameters
+        self.zeta_psi = 1
+        self.r_max = 1 * math.pi / 180  # maximum yaw rate 
+        self.psi_d = 0                  # position, velocity and acc. states
+        self.r_d = 0
+        self.a_d = 0
+        self.wn_d = self.wn_psi / 5     # desired natural frequency
+        self.zeta_d = 1                 # desired realtive damping ratio 
+        
+        self.e_psi_int = 0     # yaw angle error integral state
+        
+        
         
         # Depth autopilot
         self.wn_d_z = 1/20     # desired natural frequency, reference model
@@ -376,6 +386,12 @@ class remus100:
     def stepInput(self, t):
         """
         u_c = stepInput(t) generates step inputs.
+                     
+        Returns:
+            
+            u_control = [ delta_r   rudder angle (rad)
+                         delta_s    stern plane angle (rad)
+                         n          propeller revolution (rpm) ]
         """
         delta_r =  5 * self.D2R      # rudder angle (rad)
         delta_s = -5 * self.D2R      # stern angle (rad)
@@ -395,14 +411,25 @@ class remus100:
     def depthHeadingAutopilot(self, eta, nu, sampleTime):
         """
         [delta_r, delta_s, n] = depthHeadingAutopilot(eta,nu,sampleTime) 
-        simultaneously control the heading and depth using two PID controllers 
-        based on pole placement for different propeller rpm commands.
+        simultaneously control the heading and depth of the AUV using control
+        laws of PID type. Propeller rpm is given as a step command.
+        
+        Returns:
+            
+            u_control = [ delta_r   rudder angle (rad)
+                         delta_s    stern plane angle (rad)
+                         n          propeller revolution (rpm) ]
+            
         """
-
-        z = eta[2]              # heave position
-        theta = eta[4]          # pitch angle
-        q = nu[4]               # pitch rate
-        z_ref = self.ref_z      # heave setpoint
+        z = eta[2]                  # heave position (depth)
+        theta = eta[4]              # pitch angle
+        psi = eta[5]                # yaw angle
+        q = nu[4]                   # pitch rate
+        r = nu[5]                   # yaw rate
+        e_psi = psi - self.psi_d    # yaw angle tracking error
+        e_r   = r - self.r_d        # yaw rate tracking error
+        z_ref = self.ref_z          # heave position (depth) setpoint
+        psi_ref = self.ref_psi * self.D2R   # yaw angle setpoint
         
         #######################################################################
         # Propeller command
@@ -416,7 +443,7 @@ class remus100:
         self.z_d  = math.exp( -sampleTime * self.wn_d_z ) * self.z_d \
             + ( 1 - math.exp( -sampleTime * self.wn_d_z) ) * z_ref  
             
-        # PI cpntroller    
+        # PI controller    
         theta_d = self.Kp_z * ( (z - self.z_d) + (1/self.T_z) * self.z_int )
         delta_s = -self.Kp_theta * ssa( theta - theta_d ) - self.Kd_theta * q \
             - self.Ki_theta * self.theta_int
@@ -429,8 +456,37 @@ class remus100:
         # Heading autopilot (PID controller)
         #######################################################################
         
-        # TODO
-        delta_r = 0
+        wn = self.wn_psi            # PID natural frequency
+        zeta = self.zeta_psi        # PID natural relative damping factor
+        wn_d = self.wn_d            # reference model natural frequency
+        zeta_d = self.zeta_d        # reference model relative damping factor
+
+        m = self.M[5][5]           
+        d = 0  
+        k = 0
+
+        # PID feedback controller with 3rd-order reference model
+        [delta_r, self.e_psi_int, self.psi_d, self.r_d, self.a_d] = \
+            PIDpolePlacement( 
+                self.e_psi_int, 
+                e_psi, e_r, 
+                self.psi_d, 
+                self.r_d, 
+                self.a_d, 
+                m, 
+                d, 
+                k, 
+                wn_d, 
+                zeta_d, 
+                wn, 
+                zeta, 
+                psi_ref, 
+                self.r_max, 
+                sampleTime 
+                )
+                
+        # Euler's integration method (k+1)
+        self.e_psi_int += sampleTime * ssa( psi - self.psi_d );
         
         
         u_control = np.array([ delta_r, delta_s, n], float)
