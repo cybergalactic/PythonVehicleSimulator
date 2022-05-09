@@ -109,8 +109,8 @@ class remus100:
         self.L = 1.6                # length (m)
         self.diam = 0.19            # cylinder diameter (m)
         
-        self.nu = np.array([2.0, 0, 0, 0, 0, 0], float)  # velocity vector
-        self.u_actual = np.array([0, 0, 1500], float)    # control input vector
+        self.nu = np.array([0, 0, 0, 0, 0, 0], float) # velocity vector
+        self.u_actual = np.array([0, 0, 0], float)    # control input vector
         
         self.controls = [
             "Tail rudder (deg)",
@@ -211,12 +211,11 @@ class remus100:
         
         # Depth autopilot
         self.wn_d_z = 1/20     # desired natural frequency, reference model
-        self.Kp_z = 0.1        # heave position proportional gain, outer loop
-        self.T_z = 10.0        # heave position integral gain, outer loop
-        wn_b_theta = 1.0       # pitch bandwidth, pole placement algorithm 
-        self.Kp_theta = self.M[4][4] * wn_b_theta**2  # pitch PID controller     
-        self.Kd_theta = self.M[4][4] * 2 * wn_b_theta - 10.8
-        self.Ki_theta = self.Kp_theta * (wn_b_theta / 10)
+        self.Kp_z = 0.1        # heave proportional gain, outer loop
+        self.T_z = 100.0       # heave integral gain, outer loop
+        self.Kp_theta = 1.0    # pitch PID controller     
+        self.Kd_theta = 3.0  
+        self.Ki_theta = 0.1
 
         self.z_int = 0         # heave position integral state
         self.z_d = 0           # desired position, LP filter initial state
@@ -421,14 +420,19 @@ class remus100:
         q = nu[4]               # pitch rate
         z_ref = self.ref_z      # heave setpoint
         
-        # propeller command
+        #######################################################################
+        # Propeller command
+        #######################################################################
         n = self.ref_n 
         
-        # LP filtered desired depth
+        #######################################################################            
+        # Depth autopilot (succesive loop closure)
+        #######################################################################
+        # LP filtered desired depth command
         self.z_d  = math.exp( -sampleTime * self.wn_d_z ) * self.z_d \
-            + ( 1 - math.exp( -sampleTime * self.wn_d_z) ) * z_ref   
+            + ( 1 - math.exp( -sampleTime * self.wn_d_z) ) * z_ref  
             
-        # depth autopilot (succesive loop closure)
+        # PI cpntroller    
         theta_d = self.Kp_z * ( (z - self.z_d) + (1/self.T_z) * self.z_int )
         delta_s = -self.Kp_theta * ssa( theta - theta_d ) - self.Kd_theta * q \
             - self.Ki_theta * self.theta_int
@@ -437,8 +441,13 @@ class remus100:
         self.z_int     += sampleTime * ( z - self.z_d );
         self.theta_int += sampleTime * ssa( theta - theta_d );
 
+        #######################################################################
+        # Heading autopilot (PID controller)
+        #######################################################################
         
+        # TODO
         delta_r = 0
+        
         
         u_control = np.array([ delta_r, delta_s, n], float)
 
