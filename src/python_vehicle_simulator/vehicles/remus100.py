@@ -72,22 +72,21 @@ class remus100:
         controlSystem="stepInput",
         r_z = 0,
         r_psi = 0,
-        rpm = 0,
+        r_rpm = 0,
         V_current = 0,
         beta_current = 0,
     ):
 
         # Constants
-        D2R = math.pi / 180     # deg2rad
-        g = 9.81                # acceleration of gravity (m/s^2)
-        self.rho = 1026         # density of water (kg/m^3)
-        
+        self.D2R = math.pi / 180        # deg2rad
+        self.rho = 1026                 # density of water (kg/m^3)
+        g = 9.81                        # acceleration of gravity (m/s^2)
         
         if controlSystem == "depthHeadingAutopilot":
             self.controlDescription = (
                 "Depth and heading autopilots, z_d = "
                 + str(r_z) 
-                + " (deg), psi_d = " 
+                + ", psi_d = " 
                 + str(r_psi) 
                 + " deg"
                 )
@@ -99,9 +98,9 @@ class remus100:
             
         self.ref_z = r_z
         self.ref_psi = r_psi
-        self.ref_n = rpm
+        self.ref_n = r_rpm
         self.V_c = V_current
-        self.beta_c = beta_current
+        self.beta_c = beta_current * self.D2R
         self.controlMode = controlSystem
         
         # Initialize the AUV model 
@@ -110,8 +109,8 @@ class remus100:
         self.L = 1.6                # length (m)
         self.diam = 0.19            # cylinder diameter (m)
         
-        self.nu = np.array([0, 0, 0, 0, 0, 0], float)  # velocity vector
-        self.u_actual = np.array([0, 0, 0], float)     # control input vector
+        self.nu = np.array([2.0, 0, 0, 0, 0, 0], float)  # velocity vector
+        self.u_actual = np.array([0, 0, 1500], float)    # control input vector
         
         self.controls = [
             "Tail rudder (deg)",
@@ -122,13 +121,13 @@ class remus100:
         
 
         # Actuator dynamics
-        self.deltaMax_r = 30 * D2R  # max rudder angle (rad)
-        self.deltaMax_s = 30 * D2R  # max stern plane angle (rad)
-        self.nMax = 1525            # max propeller revolution (rpm)    
-        self.T_delta = 1.0          # rudder/stern plane time constant (s)
-        self.T_n = 1.0              # propeller time constant (s)
+        self.deltaMax_r = 30 * self.D2R # max rudder angle (rad)
+        self.deltaMax_s = 30 * self.D2R # max stern plane angle (rad)
+        self.nMax = 1525                # max propeller revolution (rpm)    
+        self.T_delta = 1.0              # rudder/stern plane time constant (s)
+        self.T_n = 1.0                  # propeller time constant (s)
         
-        if rpm < 0.0 or rpm > self.nMax:
+        if r_rpm < 0.0 or r_rpm > self.nMax:
             sys.exit("The RPM value should be in the interval 0-%s", (self.nMax))
         
         if r_z > 100.0 or r_z < 0.0:
@@ -213,14 +212,14 @@ class remus100:
         # Depth autopilot
         self.wn_d_z = 1/20     # desired natural frequency, reference model
         self.Kp_z = 0.1        # heave position proportional gain, outer loop
-        self.T_z = 100         # heave position integral time, outer loop
-        wn_b_theta = 2;        # pitch bandwidth, pole placement algorithm 
+        self.T_z = 10.0        # heave position integral gain, outer loop
+        wn_b_theta = 1.0       # pitch bandwidth, pole placement algorithm 
         self.Kp_theta = self.M[4][4] * wn_b_theta**2  # pitch PID controller     
-        self.Kd_theta = self.M[4][4] * wn_b_theta - 10.8
+        self.Kd_theta = self.M[4][4] * 2 * wn_b_theta - 10.8
         self.Ki_theta = self.Kp_theta * (wn_b_theta / 10)
 
         self.z_int = 0         # heave position integral state
-        self.z_d = 0           # desired position, initial state LP filter
+        self.z_d = 0           # desired position, LP filter initial state
         self.theta_int = 0     # pitch angle integral state
         
         """
@@ -381,10 +380,10 @@ class remus100:
         n_dot = (n_c - n) / self.T_n
 
         # Forward Euler integration [k+1]
-        nu = nu + sampleTime * nu_dot
-        delta_r = delta_r + sampleTime * delta_r_dot
-        delta_s = delta_s + sampleTime * delta_s_dot
-        n = n + sampleTime * n_dot
+        nu += sampleTime * nu_dot
+        delta_r += sampleTime * delta_r_dot
+        delta_s += sampleTime * delta_s_dot
+        n += sampleTime * n_dot
         
         u_actual = np.array([ delta_r, delta_s, n ], float)
 
@@ -395,10 +394,8 @@ class remus100:
         """
         u_c = stepInput(t) generates step inputs.
         """
-        D2R = math.pi / 180          # deg2rad
-        
-        delta_r =  5 * D2R           # rudder angle (rad)
-        delta_s = -5 * D2R           # stern angle (rad)
+        delta_r =  5 * self.D2R      # rudder angle (rad)
+        delta_s = -5 * self.D2R      # stern angle (rad)
         n = 1525                     # propeller revolution (rpm)
         
         if t > 100:
@@ -424,6 +421,9 @@ class remus100:
         q = nu[4]               # pitch rate
         z_ref = self.ref_z      # heave setpoint
         
+        # propeller command
+        n = self.ref_n 
+        
         # LP filtered desired depth
         self.z_d  = math.exp( -sampleTime * self.wn_d_z ) * self.z_d \
             + ( 1 - math.exp( -sampleTime * self.wn_d_z) ) * z_ref   
@@ -433,13 +433,13 @@ class remus100:
         delta_s = -self.Kp_theta * ssa( theta - theta_d ) - self.Kd_theta * q \
             - self.Ki_theta * self.theta_int
 
-
         # Euler's integration method (k+1)
         self.z_int     += sampleTime * ( z - self.z_d );
         self.theta_int += sampleTime * ssa( theta - theta_d );
 
-        n = 1525
+        
         delta_r = 0
+        
         u_control = np.array([ delta_r, delta_s, n], float)
 
         return u_control
