@@ -54,8 +54,8 @@ def plotVehicleStates(simTime, simData, figNo):
     # Speed
     U = np.sqrt(np.multiply(u, u) + np.multiply(v, v) + np.multiply(w, w))
 
-    beta_c = R2D(ssa(np.arctan2(v, u)))  # crab angle, beta_c
-    alpha_c = R2D(ssa(np.arctan2(w, u)))  # flight path angle
+    beta_c  = R2D(ssa(np.arctan2(v,u)))   # crab angle, beta_c    
+    alpha_c = R2D(ssa(np.arctan2(w,u)))   # flight path angle
     chi = R2D(ssa(simData[:, 5] + np.arctan2(v, u)))  # course angle, chi=psi+beta_c
 
     # Plots
