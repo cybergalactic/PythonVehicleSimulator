@@ -69,7 +69,7 @@ class tanker:
     ):
 
         # Constants
-        D2R = math.pi / 180     # deg2rad
+        self.D2R = math.pi / 180     # deg2rad
         
         if controlSystem == "headingAutopilot":
             self.controlDescription = ("Heading autopilot, psi_d = " 
@@ -80,7 +80,7 @@ class tanker:
 
         self.ref = r
         self.V_c = V_current
-        self.beta_c = beta_current * D2R
+        self.beta_c = beta_current * self.D2R
         self.waterDdepth = depth
         self.n_c = rpm
         self.controlMode = controlSystem
@@ -106,8 +106,8 @@ class tanker:
         self.dimU = len(self.controls)
 
         # Heading autopilot
-        self.e_int = 0  # integral state
-        self.wn = 0.2  # PID pole placement
+        self.e_int = 0          # integral state
+        self.wn = 0.15           # PID pole placement
         self.zeta = 0.8
 
         # Reference model
@@ -115,8 +115,8 @@ class tanker:
         self.psi_d = 0  # angle, angular rate and angular acc. states
         self.r_d = 0
         self.a_d = 0
-        self.wn_d = self.wn / 5  # desired natural frequency in yaw
-        self.zeta_d = 1.0  # desired relative damping ratio in yaw
+        self.wn_d = self.wn / 5     # desired natural frequency in yaw
+        self.zeta_d = 1.0           # desired relative damping ratio in yaw
 
 
     def dynamics(self, eta, nu, u_actual, u_control, sampleTime):
@@ -305,7 +305,7 @@ class tanker:
         r = nu[5]                           # yaw rate
         e_psi = psi - self.psi_d            # yaw angle tracking error
         e_r = r - self.r_d                  # yaw rate tracking error
-        psi_ref = self.ref * math.pi / 180  # yaw angle setpoint
+        psi_ref = self.ref * self.D2R       # yaw angle setpoint
 
         wn = self.wn            # PID natural frequency
         zeta = self.zeta        # PID natural relative damping factor
