@@ -2,14 +2,18 @@
 
 The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems Simulator) toolbox. It includes models for autonomous underwater vehicles (AUVs), unmanned surface vehicles (USVs), and ships. The vehicle models are based on the MSS vessel models located in /MSS/VESSELS/ catalogue. Each vehicle is modeled as an object in Python and the vehicle class has methods for guidance, navigation and control. The main program ```main.py``` is used to define vehicle objects for real-time simulation.
 
-    Source files:
+    Root folder:
     /src/python_vehicle_simulator/ 
         main.py                 - MAIN PROGRAM (terminal command >>python3 main.py)
+        3D_animation.gif        - 3D animation file which can be opened in a web browser by right-clicking the file   
+        
+    Library files:
+    /src/python_vehicle_simulator/lib/         
         control.py              - feedback control systems
         gnc.py                  - generic GNC functions
         guidance.py             - guidance functions        
         mainLoop.py             - main simulation loop
-        plotTimeSeries.py       - plotting functions
+        plotTimeSeries.py       - plotting and animation functions
 
     Vehicle classes/methods: 
     /src/python_vehicle_simulator/vehicles/              
@@ -22,10 +26,6 @@ The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems S
         supply.py               - Offshore supply vessel controlled by tunnel thrusters and main propellers, L = 76.2 m
         tanker.py               - Tanker, rudder-controlled ship model including shallow water effects, L = 304.8 m
         remus100.py             - Cylinder-shaped AUV controlled by a rudder, stern planes and a propeller, L = 1.6 m        
-        
-    Animated GIF:
-    /src/python_vehicle_simulator/ 
-        3D_animation.gif        - 3D animation file which can be opened in a web browser by right-clicking the file
         
 For more information about mathematical modeling of marine craft and methods for guidance, navigation and control, please consult:
 
