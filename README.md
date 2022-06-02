@@ -44,7 +44,7 @@ The Python packages are automatically installed by uisng the command
 
 ```pip install <path>```
 
-where ```<path>``` is the path of the downloaded repository.
+where ```<path>``` is the path of the downloaded PythonVehicleSimulator repository.
 
 1. Click on the green code tab on Github and choose download
 2. This gives you the catalog: PythonVehicleSimulator-master
