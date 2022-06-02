@@ -51,5 +51,6 @@ where ```<path>``` is the path of the downloaded PythonVehicleSimulator reposito
 3. ```python3 -m pip install /MY_PATH/PythonVehicleSimulator```
 
 ### Development:
+To change and update the files, you need to install with the ```e``` option:
 1. Clone the repository.
 2. ```python3 -m pip install -e <path>```
