@@ -48,9 +48,9 @@ where ```<path>``` is the path of the downloaded PythonVehicleSimulator reposito
 
 1. Click on the green code tab on Github and choose download
 2. This gives you the catalog: PythonVehicleSimulator-master
-3. python3 -m pip install /MY_PATH/PythonVehicleSimulator
+3. ```python3 -m pip install /MY_PATH/PythonVehicleSimulator```
 
 ### Development:
 1. Clone the repository.
 2. In the root of the repository:
-```pip install -e <path>```
+```python3 -m pip install -e <path>```
