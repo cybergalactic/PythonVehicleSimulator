@@ -39,6 +39,7 @@ In order to run the main program ```main.py``` the following modules must be ins
 
     numpy           https://numpy.org/install/
     matplotlib      https://matplotlib.org/stable/users/installing.html
+    pytest          https://docs.pytest.org
 
 The Python packages are automatically installed by uisng the command
 
