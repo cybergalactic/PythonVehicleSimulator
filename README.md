@@ -40,9 +40,15 @@ In order to run the main program ```main.py``` the following modules must be ins
     numpy           https://numpy.org/install/
     matplotlib      https://matplotlib.org/stable/users/installing.html
 
+The Python packages are automatically installed by uisng the command
+
 ```pip install <path>```
 
 where ```<path>``` is the path of the downloaded repository.
+
+1. Click on the green code tab on Github and choose download
+2. This gives you the catalog: PythonVehicleSimulator-master
+3. python3 -m pip install /MY_PATH/PythonVehicleSimulator
 
 ### Development:
 1. Clone the repository.
