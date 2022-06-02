@@ -7,10 +7,9 @@ The pytest for 'test_simulate.py' can be run in the termonal using:
 """  
 
 import matplotlib.pyplot as plt
-from python_vehicle_simulator import *
+from python_vehicle_simulator.lib import *
 import python_vehicle_simulator.vehicles as vehicles
 import pytest
-import matplotlib.pyplot as plt
 
 sampleTime = 0.02                   # sample time
 N = 10000                           # number of samples
