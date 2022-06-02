@@ -52,5 +52,4 @@ where ```<path>``` is the path of the downloaded PythonVehicleSimulator reposito
 
 ### Development:
 1. Clone the repository.
-2. In the root of the repository:
-```python3 -m pip install -e <path>```
+2. ```python3 -m pip install -e <path>```
