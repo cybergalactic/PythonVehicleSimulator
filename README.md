@@ -47,8 +47,8 @@ The Python packages are automatically installed by uisng the command
 where ```<path>``` is the path of the downloaded PythonVehicleSimulator repository. Example:
 
 1. Click on the green code tab on Github and choose download
-2. This gives you the catalog: PythonVehicleSimulator-master
-3. ```python3 -m pip install /MY_PATH/PythonVehicleSimulator```
+2. This gives you the catalog: PythonVehicleSimulator-master (can be renamed)
+3. ```python3 -m pip install /MY_PATH/PythonVehicleSimulator-master```
 
 ### Development:
 To change and update the files, you need to install with the ```e``` option:
