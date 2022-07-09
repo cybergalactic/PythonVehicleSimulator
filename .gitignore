@@ -108,3 +108,4 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+src/python_vehicle_simulator/3D_animation.gif
