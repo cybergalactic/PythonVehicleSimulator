@@ -51,5 +51,4 @@ where ```<path>``` is the path of the downloaded PythonVehicleSimulator reposito
 2. This gives you the catalog: PythonVehicleSimulator-master (can be renamed)
 3. ```python3 -m pip install -e /MY_PATH/PythonVehicleSimulator-master```
 
-### Development:
 Note that the -e option is needed to update and change the files. If omitted, you can only run the program.
