@@ -5,8 +5,8 @@ main.py: Main program for the Python Vehicle Simulator, which can be used
     to simulate and test guidance, navigation and control (GNC) systems.
 
 Reference: T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and
-Motion Control. 2nd. Edition, Wiley. 
-URL: www.fossen.biz/wiley  
+Motion Control. 2nd edition, John Wiley & Sons, Chichester, UK. 
+URL: https://www.fossen.biz/wiley  
     
 Author:     Thor I. Fossen
 """
@@ -17,7 +17,7 @@ from python_vehicle_simulator.vehicles import *
 from python_vehicle_simulator.lib import *
 
 # Simulation parameters: 
-sampleTime = 0.02                   # sample time
+sampleTime = 0.02                   # sample time [seconds]
 N = 10000                           # number of samples
 
 # 3D plot and animation parameters where browser = {firefox,chrome,safari,etc.}
@@ -47,7 +47,7 @@ Call constructors without arguments to test step inputs, e.g. DSRV(), otter(), e
 
 no = input("Please enter a vehicle no.: ")   
 
-match no:                       #  the match statement requires Python >= 3.10
+match no:   #  The match statement requires Python >= 3.10
     case '1': vehicle = DSRV('depthAutopilot',60.0)
     case '2': vehicle = frigate('headingAutopilot',10.0,100.0)
     case '3': vehicle = otter('headingAutopilot',100.0,0.3,-30.0,200.0)  
@@ -58,7 +58,7 @@ match no:                       #  the match statement requires Python >= 3.10
     case '8': vehicle = tanker('headingAutopilot',-20,0.5,150,20,80)
     case '9': vehicle = remus100('depthHeadingAutopilot',30,50,1525,0.5,170)     
     case _: print('Error: Not a valid simulator option'), sys.exit()
-    
+
 printVehicleinfo(vehicle, sampleTime, N)
 
 ###############################################################################
