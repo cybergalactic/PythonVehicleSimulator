@@ -42,7 +42,7 @@ Author:     Thor I. Fossen
 import numpy as np
 import math
 from python_vehicle_simulator.lib.control import PIDpolePlacement
-from python_vehicle_simulator.lib.gnc import Smtrx, Hmtrx, m2c, crossFlowDrag, sat
+from python_vehicle_simulator.lib.gnc import Smtrx, Hmtrx, Rzyx, m2c, crossFlowDrag, sat
 
 # Class Vehicle
 class otter:
@@ -68,7 +68,7 @@ class otter:
         
         # Constants
         D2R = math.pi / 180     # deg2rad
-        g = 9.81                # acceleration of gravity (m/s^2)
+        self.g = 9.81           # acceleration of gravity (m/s^2)
         rho = 1026              # density of water (kg/m^3)
 
         if controlSystem == "headingAutopilot":
@@ -102,15 +102,15 @@ class otter:
         self.dimU = len(self.controls)
 
         # Vehicle parameters
-        m = 55.0                                # mass (kg)
-        mp = 25.0                               # Payload (kg)
-        self.m_total = m + mp
-        rp = np.array([0, 0, -0.35], float)     # location of payload (m)
-        rg = np.array([0.2, 0, -0.2], float)    # CG for hull only (m)
-        rg = (m * rg + mp * rp) / (m + mp)      # CG corrected for payload
+        m = 55.0                                 # mass (kg)
+        self.mp = 25.0                           # Payload (kg)
+        self.m_total = m + self.mp
+        self.rp = np.array([0.05, 0, -0.35], float) # location of payload (m)
+        rg = np.array([0.2, 0, -0.2], float)     # CG for hull only (m)
+        rg = (m * rg + self.mp * self.rp) / (m + self.mp)  # CG corrected for payload
         self.S_rg = Smtrx(rg)
         self.H_rg = Hmtrx(rg)
-        self.S_rp = Smtrx(rp)
+        self.S_rp = Smtrx(self.rp)
 
         R44 = 0.4 * self.B  # radii of gyration (m)
         R55 = 0.25 * self.L
@@ -125,23 +125,23 @@ class otter:
         Cb_pont = 0.4       # block coefficient, computed from m = 55 kg
 
         # Inertia dyadic, volume displacement and draft
-        nabla = (m + mp) / rho  # volume
+        nabla = (m + self.mp) / rho  # volume
         self.T = nabla / (2 * Cb_pont * self.B_pont * self.L)  # draft
         Ig_CG = m * np.diag(np.array([R44 ** 2, R55 ** 2, R66 ** 2]))
-        self.Ig = Ig_CG - m * self.S_rg @ self.S_rg - mp * self.S_rp @ self.S_rp
+        self.Ig = Ig_CG - m * self.S_rg @ self.S_rg - self.mp * self.S_rp @ self.S_rp
 
         # Experimental propeller data including lever arms
         self.l1 = -y_pont  # lever arm, left propeller (m)
         self.l2 = y_pont  # lever arm, right propeller (m)
         self.k_pos = 0.02216 / 2  # Positive Bollard, one propeller
         self.k_neg = 0.01289 / 2  # Negative Bollard, one propeller
-        self.n_max = math.sqrt((0.5 * 24.4 * g) / self.k_pos)  # max. prop. rev.
-        self.n_min = -math.sqrt((0.5 * 13.6 * g) / self.k_neg) # min. prop. rev.
+        self.n_max = math.sqrt((0.5 * 24.4 * self.g) / self.k_pos)  # max. prop. rev.
+        self.n_min = -math.sqrt((0.5 * 13.6 * self.g) / self.k_neg) # min. prop. rev.
 
         # MRB_CG = [ (m+mp) * I3  O3      (Fossen 2021, Chapter 3)
         #               O3       Ig ]
         MRB_CG = np.zeros((6, 6))
-        MRB_CG[0:3, 0:3] = (m + mp) * np.identity(3)
+        MRB_CG[0:3, 0:3] = (m + self.mp) * np.identity(3)
         MRB_CG[3:6, 3:6] = self.Ig
         MRB = self.H_rg.T @ MRB_CG @ self.H_rg
 
@@ -179,9 +179,9 @@ class otter:
         GM_T = KM_T - KG    # GM values
         GM_L = KM_L - KG
 
-        G33 = rho * g * (2 * Aw_pont)  # spring stiffness
-        G44 = rho * g * nabla * GM_T
-        G55 = rho * g * nabla * GM_L
+        G33 = rho * self.g * (2 * Aw_pont)  # spring stiffness
+        G44 = rho * self.g * nabla * GM_T
+        G55 = rho * self.g * nabla * GM_L
         G_CF = np.diag([0, 0, G33, G44, G55, 0])  # spring stiff. matrix in CF
         LCF = -0.2
         H = Hmtrx(np.array([LCF, 0.0, 0.0]))  # transform G_CF from CF to CO
@@ -193,7 +193,7 @@ class otter:
         w5 = math.sqrt(G55 / self.M[4, 4])
 
         # Linear damping terms (hydrodynamic derivatives)
-        Xu = -24.4 * g / Umax  # specified using the maximum speed
+        Xu = -24.4 *self. g / Umax  # specified using the maximum speed
         Yv = 0
         Zw = -2 * 0.3 * w3 * self.M[2, 2]  # specified using relative damping
         Kp = -2 * 0.2 * w4 * self.M[3, 3]
@@ -201,10 +201,6 @@ class otter:
         Nr = -self.M[5, 5] / T_yaw  # specified by the time constant T_yaw
 
         self.D = -np.diag([Xu, Yv, Zw, Kp, Mq, Nr])
-
-        # Trim: theta = -7.5 deg corresponds to 13.5 cm less height aft
-        self.trim_moment = 0
-        self.trim_setpoint = 280
 
         # Propeller configuration/input matrix
         B = self.k_pos * np.array([[1, 1], [-self.l1, -self.l2]])
@@ -251,11 +247,17 @@ class otter:
         CA = m2c(self.MA, nu_r)
         CA[5, 0] = 0  # assume that the Munk moment in yaw can be neglected
         CA[5, 1] = 0  # if nonzero, must be balanced by adding nonlinear damping
+        CA[0, 5] = 0
+        CA[1, 5] = 0
 
         C = CRB + CA
 
-        # Ballast
-        g_0 = np.array([0.0, 0.0, 0.0, 0.0, self.trim_moment, 0.0])
+        # Payload force and moment expressed in BODY
+        R = Rzyx(eta[3], eta[4], eta[5])
+        f_payload = np.matmul(R.T, np.array([0, 0, self.mp * self.g], float))              
+        m_payload = np.matmul(self.S_rp, f_payload)
+        g_0 = np.array([ f_payload[0],f_payload[1],f_payload[2], 
+                         m_payload[0],m_payload[1],m_payload[2] ])
 
         # Control forces and moments - with propeller revolution saturation
         thrust = np.zeros(2)
@@ -292,17 +294,15 @@ class otter:
             + tau_crossflow
             - np.matmul(C, nu_r)
             - np.matmul(self.G, eta)
-            - g_0
+            + g_0
         )
 
         nu_dot = np.matmul(self.Minv, sum_tau)  # USV dynamics
         n_dot = (u_control - n) / self.T_n  # propeller dynamics
-        trim_dot = (self.trim_setpoint - self.trim_moment) / 5  # trim dynamics
 
         # Forward Euler integration [k+1]
         nu = nu + sampleTime * nu_dot
         n = n + sampleTime * n_dot
-        self.trim_moment = self.trim_moment + sampleTime * trim_dot
 
         u_actual = np.array(n, float)
 
