@@ -189,7 +189,7 @@ class remus100:
             
         # Tail rudder parameters (single)
         self.CL_delta_r = 0.5       # rudder lift coefficient
-        self.A_r = 0.10 * 0.05      # rudder area (m2)
+        self.A_r = 2 * 0.10 * 0.05  # rudder area (m2)
         self.x_r = -a               # rudder x-position (m)
 
         # Stern-plane paramaters (double)
