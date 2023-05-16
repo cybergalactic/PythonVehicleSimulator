@@ -17,12 +17,6 @@ import math
 # reference  model for generation of a smooth desired position x_d, velocity |v_d| < v_max, 
 # and acceleration a_d. Inputs are natural frequency wn_d and relative damping zeta_d.
 def refModel3(x_d, v_d, a_d, r, wn_d, zeta_d, v_max, sampleTime):
-
-    # Velocity saturation
-    if (v_d > v_max):
-        v_d = v_max
-    elif (v_d < -v_max): 
-        v_d = -v_max
     
     # desired "jerk"
     j_d = wn_d**3 * (r -x_d) - (2*zeta_d+1) * wn_d**2 * v_d - (2*zeta_d+1) * wn_d * a_d
@@ -31,5 +25,11 @@ def refModel3(x_d, v_d, a_d, r, wn_d, zeta_d, v_max, sampleTime):
     x_d += sampleTime * v_d             # desired position
     v_d += sampleTime * a_d             # desired velocity
     a_d += sampleTime * j_d             # desired acceleration 
+    
+    # Velocity saturation
+    if (v_d > v_max):
+        v_d = v_max
+    elif (v_d < -v_max): 
+        v_d = -v_max    
     
     return x_d, v_d, a_d
