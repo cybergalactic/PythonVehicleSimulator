@@ -30,7 +30,7 @@ The Python Vehicle Simulator supplements the Matlab MSS (Marine Systems Simulato
 For more information about the mathematical modeling of marine craft and methods for guidance, navigation, and control, please consult:
 
 T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control. 2nd. Edition, Wiley. 
-URL: wiley.fossen.biz
+URL: https://wiley.fossen.biz
 
 ## Install:
 To run the main program ```main.py``` the following modules must be installed:
