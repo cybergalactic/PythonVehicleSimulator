@@ -1,13 +1,11 @@
 # Python Vehicle Simulator
 
-The Python Vehicle Simulator is a supplement to the Matlab MSS (Marine Systems Simulator) toolbox. It includes models for autonomous underwater vehicles (AUVs), unmanned surface vehicles (USVs), and ships. The vehicle models are based on the MSS vessel models located in /MSS/VESSELS/ catalogue. Each vehicle is modeled as an object in Python and the vehicle class has methods for guidance, navigation and control. The main program ```main.py``` is used to define vehicle objects for real-time simulation. 
-
-URL: https://www.fossen.biz/wiley/pythonVehicleSim.php 
+The Python Vehicle Simulator supplements the Matlab MSS (Marine Systems Simulator) toolbox. It includes models for autonomous underwater vehicles (AUVs), unmanned surface vehicles (USVs), and ships. The vehicle models are based on the MSS vessel models in /MSS/VESSELS/catalog. Each vehicle is modeled as an object in Python, and the vehicle class has methods for guidance, navigation, and control. The main program ```main.py``` defines vehicle objects for real-time simulation. 
 
     Root folder:
     /src/python_vehicle_simulator/ 
         main.py                 - MAIN PROGRAM (terminal command >>python3 main.py)
-        3D_animation.gif        - 3D animation file which can be opened in a web browser by right-clicking the file   
+        3D_animation.gif        - 3D animation file that can be opened in a web browser by right-clicking the file   
         
     Library files:
     /src/python_vehicle_simulator/lib/         
@@ -29,25 +27,25 @@ URL: https://www.fossen.biz/wiley/pythonVehicleSim.php
         tanker.py               - Tanker, rudder-controlled ship model including shallow water effects, L = 304.8 m
         remus100.py             - Cylinder-shaped AUV controlled by a rudder, stern planes and a propeller, L = 1.6 m        
         
-For more information about mathematical modeling of marine craft and methods for guidance, navigation and control, please consult:
+For more information about the mathematical modeling of marine craft and methods for guidance, navigation, and control, please consult:
 
 T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion Control. 2nd. Edition, Wiley. 
-URL: www.fossen.biz/wiley
+URL: https://wiley.fossen.biz
 
 ## Install:
-In order to run the main program ```main.py``` the following modules must be installed:
+To run the main program ```main.py``` the following modules must be installed:
 
     numpy           https://numpy.org/install/
     matplotlib      https://matplotlib.org/stable/users/installing.html
     pytest          https://docs.pytest.org
 
-The Python packages are automatically installed by uisng the command
+The Python packages are automatically installed by using the command
 
 ```pip install <path>```
 
 where ```<path>``` is the path of the downloaded PythonVehicleSimulator repository. Example:
 
-1. Click on the green code tab on Github and choose download
+1. Click on the green code tab on GitHub and choose download
 2. This gives you the catalog: PythonVehicleSimulator-master (can be renamed)
 3. ```python3 -m pip install -e /MY_PATH/PythonVehicleSimulator-master```
 
