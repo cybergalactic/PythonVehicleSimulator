@@ -358,7 +358,7 @@ class remus100:
             (1-t_prop) * X_prop + X_r + X_s, 
             Y_r, 
             Z_s,
-            K_prop,
+            K_prop / 10,   # scaled down by a factor of 10 to match exp. results
             self.x_s * Z_s,
             self.x_r * Y_r
             ], float)
