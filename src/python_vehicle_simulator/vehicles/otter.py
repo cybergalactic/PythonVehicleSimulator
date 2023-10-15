@@ -234,6 +234,7 @@ class otter:
         v_c = self.V_c * math.sin(self.beta_c - eta[5])  # current sway vel.
 
         nu_c = np.array([u_c, v_c, 0, 0, 0, 0], float)  # current velocity vector
+        Dnu_c = np.array([nu[5]*v_c, -nu[5]*u_c, 0, 0, 0, 0],float) # derivative
         nu_r = nu - nu_c  # relative velocity vector
 
         # Rigid body and added mass Coriolis and centripetal matrices
@@ -297,7 +298,7 @@ class otter:
             + g_0
         )
 
-        nu_dot = np.matmul(self.Minv, sum_tau)  # USV dynamics
+        nu_dot = Dnu_c + np.matmul(self.Minv, sum_tau)  # USV dynamics
         n_dot = (u_control - n) / self.T_n  # propeller dynamics
 
         # Forward Euler integration [k+1]
