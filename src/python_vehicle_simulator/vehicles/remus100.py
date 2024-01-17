@@ -313,7 +313,7 @@ class remus100:
         # Nonlinear quadratic velocity terms in pitch and yaw (Munk moments) 
         # are set to zero since only linear damping is used
         CA[4][0] = 0  
-        CA[4][3] = 0
+        CA[4][2] = 0
         CA[5][0] = 0
         CA[5][1] = 0
         
@@ -484,11 +484,7 @@ class remus100:
                 self.r_max, 
                 sampleTime 
                 )
-                
-        # Euler's integration method (k+1)
-        self.e_psi_int += sampleTime * ssa( psi - self.psi_d );
-        
-        
+            
         u_control = np.array([ delta_r, delta_s, n], float)
 
         return u_control
