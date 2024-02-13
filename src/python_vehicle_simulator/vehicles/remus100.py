@@ -29,8 +29,8 @@ Methods:
                          n          propeller revolution (rpm) ]
 
     u = depthHeadingAutopilot(eta,nu,sampleTime) 
-        Simultaneously control of depth and heading using two controllers of 
-        PID type. Propeller rpm is given as a step command.
+        Simultaneously control of depth and heading using controllers of 
+        PID and SMC ype. Propeller rpm is given as a step command.
        
     u = stepInput(t) generates tail rudder, stern planes and RPM step inputs.   
        
@@ -48,7 +48,7 @@ Author:     Thor I. Fossen
 import numpy as np
 import math
 import sys
-from python_vehicle_simulator.lib.control import PIDpolePlacement
+from python_vehicle_simulator.lib.control import integralSMC
 from python_vehicle_simulator.lib.gnc import crossFlowDrag,forceLiftDrag,Hmtrx,m2c,gvect,ssa
 
 # Class Vehicle
@@ -122,11 +122,11 @@ class remus100:
         
 
         # Actuator dynamics
-        self.deltaMax_r = 30 * self.D2R # max rudder angle (rad)
-        self.deltaMax_s = 30 * self.D2R # max stern plane angle (rad)
+        self.deltaMax_r = 15 * self.D2R # max rudder angle (rad)
+        self.deltaMax_s = 15 * self.D2R # max stern plane angle (rad)
         self.nMax = 1525                # max propeller revolution (rpm)    
-        self.T_delta = 1.0              # rudder/stern plane time constant (s)
-        self.T_n = 1.0                  # propeller time constant (s)
+        self.T_delta = 0.1              # rudder/stern plane time constant (s)
+        self.T_n = 0.1                  # propeller time constant (s)
         
         if r_rpm < 0.0 or r_rpm > self.nMax:
             sys.exit("The RPM value should be in the interval 0-%s", (self.nMax))
@@ -187,14 +187,16 @@ class remus100:
         self.w_pitch = math.sqrt( self.W * ( self.r_bg[2]-self.r_bb[2] ) / 
             self.M[4][4] )
             
-        # Tail rudder parameters (single)
+        S_fin = 0.00665;            # fin area
+        
+        # Tail rudder parameters
         self.CL_delta_r = 0.5       # rudder lift coefficient
-        self.A_r = 2 * 0.10 * 0.05  # rudder area (m2)
+        self.A_r = 2 * S_fin        # rudder area (m2)
         self.x_r = -a               # rudder x-position (m)
 
-        # Stern-plane paramaters (double)
+        # Stern-plane parameters (double)
         self.CL_delta_s = 0.7       # stern-plane lift coefficient
-        self.A_s = 2 * 0.10 * 0.05  # stern-plane area (m2)
+        self.A_s = 2 * S_fin        # stern-plane area (m2)
         self.x_s = -a               # stern-plane z-position (m)
 
         # Low-speed linear damping matrix parameters
@@ -203,30 +205,40 @@ class remus100:
         self.T_heave = self.T_sway  # equal for for a cylinder-shaped AUV
         self.zeta_roll = 0.3        # relative damping ratio in roll
         self.zeta_pitch = 0.8       # relative damping ratio in pitch
-        self.T_yaw = 5              # time constant in yaw (s)
+        self.T_yaw = 1              # time constant in yaw (s)
         
-        # Heading autopilot
-        self.wn_psi = 0.5           # PID pole placement parameters
-        self.zeta_psi = 1
-        self.r_max = 1 * math.pi / 180  # maximum yaw rate 
-        self.psi_d = 0                  # position, velocity and acc. states
+        # Feed forward gains (Nomoto gain parameters)
+        self.K_nomoto = 5.0/20.0    # K_nomoto = r_max / delta_max
+        self.T_nomoto = self.T_yaw  # Time constant in yaw
+        
+        # Heading autopilot reference model 
+        self.psi_d = 0                    # position, velocity and acc. states
         self.r_d = 0
         self.a_d = 0
-        self.wn_d = self.wn_psi / 5     # desired natural frequency
-        self.zeta_d = 1                 # desired realtive damping ratio 
+        self.wn_d = 0.1                   # desired natural frequency
+        self.zeta_d = 1                   # desired realtive damping ratio 
+        self.r_max = 5.0 * math.pi / 180  # maximum yaw rate 
+        
+        # Heading autopilot (Equation 16.479 in Fossen 2021)
+        # sigma = r-r_d + 2*lambda*ssa(psi-psi_d) + lambda^2 * integral(ssa(psi-psi_d))
+        # delta = (T_nomoto * r_r_dot + r_r - K_d * sigma 
+        #       - K_sigma * (sigma/phi_b)) / K_nomoto
+        self.lam = 0.1
+        self.phi_b = 0.1       # boundary layer thickness
+        self.K_d = 0.5         # PID gain
+        self.K_sigma = 0.05    # SMC switching gain
         
         self.e_psi_int = 0     # yaw angle error integral state
         
-        
-        
         # Depth autopilot
-        self.wn_d_z = 1/20     # desired natural frequency, reference model
+        self.wn_d_z = 0.02     # desired natural frequency, reference model
         self.Kp_z = 0.1        # heave proportional gain, outer loop
         self.T_z = 100.0       # heave integral gain, outer loop
-        self.Kp_theta = 1.0    # pitch PID controller     
-        self.Kd_theta = 3.0  
-        self.Ki_theta = 0.1
-
+        self.Kp_theta = 5.0    # pitch PID controller     
+        self.Kd_theta = 2.0  
+        self.Ki_theta = 0.3
+        self.K_w = 5.0         # optional heave velocity feedback gain
+        
         self.z_int = 0         # heave position integral state
         self.z_d = 0           # desired position, LP filter initial state
         self.theta_int = 0     # pitch angle integral state
@@ -309,13 +321,17 @@ class remus100:
         # Rigi-body/added mass Coriolis/centripetal matrices expressed in the CO
         CRB = m2c(self.MRB, nu_r)
         CA  = m2c(self.MA, nu_r)
-               
-        # Nonlinear quadratic velocity terms in pitch and yaw (Munk moments) 
-        # are set to zero since only linear damping is used
-        CA[4][0] = 0  
+        
+        # CA-terms in roll, pitch and yaw can destabilize the model if quadratic
+        # rotational damping is missing. These terms are assumed to be zero
+        CA[4][0] = 0     # Quadratic velocity terms due to pitching
+        CA[0][4] = 0    
         CA[4][2] = 0
-        CA[5][0] = 0
+        CA[2][4] = 0
+        CA[5][0] = 0     # Munk moment in yaw 
+        CA[0][5] = 0
         CA[5][1] = 0
+        CA[1][5] = 0
         
         C = CRB + CA
 
@@ -329,9 +345,9 @@ class remus100:
             self.M[5][5] / self.T_yaw
             ])
         
-        D[0][0] = D[0][0] * math.exp(-3*U_r) # For DOF 1,2,6 the D elements 
-        D[1][1] = D[1][1] * math.exp(-3*U_r) # go to zero at higher speeds, i.e.
-        D[5][5] = D[5][5] * math.exp(-3*U_r) # drag and lift/drag dominate
+        # Linear surge and sway damping
+        D[0][0] = D[0][0] * math.exp(-3*U_r) # vanish at high speed where quadratic
+        D[1][1] = D[1][1] * math.exp(-3*U_r) # drag and lift forces dominates
 
         tau_liftdrag = forceLiftDrag(self.diam,self.S,self.CD_0,alpha,U_r)
         tau_crossflow = crossFlowDrag(self.L,self.diam,self.diam,nu_r)
@@ -424,6 +440,7 @@ class remus100:
         z = eta[2]                  # heave position (depth)
         theta = eta[4]              # pitch angle
         psi = eta[5]                # yaw angle
+        w = nu[2]                   # heave velocity
         q = nu[4]                   # pitch rate
         r = nu[5]                   # yaw rate
         e_psi = psi - self.psi_d    # yaw angle tracking error
@@ -446,40 +463,36 @@ class remus100:
         # PI controller    
         theta_d = self.Kp_z * ( (z - self.z_d) + (1/self.T_z) * self.z_int )
         delta_s = -self.Kp_theta * ssa( theta - theta_d ) - self.Kd_theta * q \
-            - self.Ki_theta * self.theta_int
+            - self.Ki_theta * self.theta_int - self.K_w * w
 
         # Euler's integration method (k+1)
         self.z_int     += sampleTime * ( z - self.z_d );
         self.theta_int += sampleTime * ssa( theta - theta_d );
 
         #######################################################################
-        # Heading autopilot (PID controller)
+        # Heading autopilot (SMC controller)
         #######################################################################
         
-        wn = self.wn_psi            # PID natural frequency
-        zeta = self.zeta_psi        # PID natural relative damping factor
         wn_d = self.wn_d            # reference model natural frequency
         zeta_d = self.zeta_d        # reference model relative damping factor
 
-        m = self.M[5][5]           
-        d = 0  
-        k = 0
 
-        # PID feedback controller with 3rd-order reference model
+        # Integral SMC with 3rd-order reference model
         [delta_r, self.e_psi_int, self.psi_d, self.r_d, self.a_d] = \
-            PIDpolePlacement( 
+            integralSMC( 
                 self.e_psi_int, 
                 e_psi, e_r, 
                 self.psi_d, 
                 self.r_d, 
                 self.a_d, 
-                m, 
-                d, 
-                k, 
+                self.T_nomoto, 
+                self.K_nomoto, 
                 wn_d, 
                 zeta_d, 
-                wn, 
-                zeta, 
+                self.K_d,
+                self.K_sigma,
+                self.lam,
+                self.phi_b,
                 psi_ref, 
                 self.r_max, 
                 sampleTime 
