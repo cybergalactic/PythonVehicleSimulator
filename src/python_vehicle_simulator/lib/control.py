@@ -81,3 +81,49 @@ def DPpolePlacement(
     e_int += sampleTime * e
 
     return tau, e_int, x_d, y_d, psi_d
+
+# Heading autopilot - Intergral SMC (Equation 16.479 in Fossen 2021)
+def integralSMC(
+    e_int,
+    e_x,
+    e_v,
+    x_d,
+    v_d,
+    a_d,
+    T_nomoto,
+    K_nomoto,
+    wn_d,
+    zeta_d,
+    K_d,
+    K_sigma,
+    lam,
+    phi_b,
+    r,
+    v_max,
+    sampleTime,
+):
+
+    # Sliding surface
+    v_r_dot = a_d - 2 * lam * e_v - lam ** 2 * ssa(e_x)
+    v_r     = v_d - 2 * lam * ssa(e_x) - lam ** 2 * e_int
+    sigma   = e_v + 2 * lam * ssa(e_x) + lam ** 2 * e_int
+
+    #  Control law
+    if abs(sigma / phi_b) > 1.0:
+        delta = ( T_nomoto * v_r_dot + v_r - K_d * sigma 
+                 - K_sigma * np.sign(sigma) ) / K_nomoto
+    else:
+        delta = ( T_nomoto * v_r_dot + v_r - K_d * sigma 
+                 - K_sigma * (sigma / phi_b) ) / K_nomoto
+
+    # Integral error, Euler's method
+    e_int += sampleTime * ssa(e_x)
+
+    # 3rd-order reference model for smooth position, velocity and acceleration
+    [x_d, v_d, a_d] = refModel3(x_d, v_d, a_d, r, wn_d, zeta_d, v_max, sampleTime)
+
+    return delta, e_int, x_d, v_d, a_d
+
+
+
+
