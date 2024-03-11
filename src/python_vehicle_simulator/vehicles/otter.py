@@ -69,7 +69,7 @@ class otter:
         # Constants
         D2R = math.pi / 180     # deg2rad
         self.g = 9.81           # acceleration of gravity (m/s^2)
-        rho = 1026              # density of water (kg/m^3)
+        rho = 1025              # density of water (kg/m^3)
 
         if controlSystem == "headingAutopilot":
             self.controlDescription = (
@@ -88,8 +88,8 @@ class otter:
         self.tauX = tau_X  # surge force (N)
 
         # Initialize the Otter USV model
-        self.T_n = 1.0  # propeller time constants (s)
-        self.L = 2.0    # Length (m)
+        self.T_n = 0.1  # propeller time constants (s)
+        self.L = 2.0    # length (m)
         self.B = 1.08   # beam (m)
         self.nu = np.array([0, 0, 0, 0, 0, 0], float)  # velocity vector
         self.u_actual = np.array([0, 0], float)  # propeller revolution states
@@ -115,6 +115,7 @@ class otter:
         R44 = 0.4 * self.B  # radii of gyration (m)
         R55 = 0.25 * self.L
         R66 = 0.25 * self.L
+        T_sway = 1.0        # time constant in sway (s)
         T_yaw = 1.0         # time constant in yaw (s)
         Umax = 6 * 0.5144   # max forward speed (m/s)
 
@@ -193,8 +194,8 @@ class otter:
         w5 = math.sqrt(G55 / self.M[4, 4])
 
         # Linear damping terms (hydrodynamic derivatives)
-        Xu = -24.4 *self. g / Umax  # specified using the maximum speed
-        Yv = 0
+        Xu = -24.4 *self. g / Umax   # specified using the maximum speed
+        Yv = -self.M[1, 1]  / T_sway # specified using the time constant in sway
         Zw = -2 * 0.3 * w3 * self.M[2, 2]  # specified using relative damping
         Kp = -2 * 0.2 * w4 * self.M[3, 3]
         Mq = -2 * 0.4 * w5 * self.M[4, 4]
@@ -208,15 +209,15 @@ class otter:
 
         # Heading autopilot
         self.e_int = 0  # integral state
-        self.wn = 1.2  # PID pole placement
-        self.zeta = 0.8
+        self.wn = 2.5   # PID pole placement
+        self.zeta = 1
 
         # Reference model
         self.r_max = 10 * math.pi / 180  # maximum yaw rate
-        self.psi_d = 0  # angle, angular rate and angular acc. states
+        self.psi_d = 0   # angle, angular rate and angular acc. states
         self.r_d = 0
         self.a_d = 0
-        self.wn_d = self.wn / 5  # desired natural frequency in yaw
+        self.wn_d = 0.5  # desired natural frequency in yaw
         self.zeta_d = 1  # desired relative damping ratio
 
 
@@ -246,10 +247,11 @@ class otter:
         CRB = self.H_rg.T @ CRB_CG @ self.H_rg  # transform CRB from CG to CO
 
         CA = m2c(self.MA, nu_r)
-        CA[5, 0] = 0  # assume that the Munk moment in yaw can be neglected
-        CA[5, 1] = 0  # if nonzero, must be balanced by adding nonlinear damping
-        CA[0, 5] = 0
-        CA[1, 5] = 0
+        # Uncomment to cancel the Munk moment in yaw, if stability problems
+        # CA[5, 0] = 0  
+        # CA[5, 1] = 0 
+        # CA[0, 5] = 0
+        # CA[1, 5] = 0
 
         C = CRB + CA
 
