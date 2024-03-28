@@ -103,7 +103,7 @@ class supply:
         m = 6000.0e3        # mass (kg)
         self.L = 76.2       # length (m)
         self.T_n = 1.0      # prop. rev. time constant (s)
-        self.n_max = np.array([250, 250, 150, 250, 
+        self.n_max = np.array([250, 250, 250, 250, 
                                160, 160], float) # RPM saturation limits
         self.nu = np.array([0, 0, 0, 0, 0, 0], float) # initial velocity vector
         self.u_actual = np.array([0, 0, 0, 0, 0, 0], float) # RPM inputs
