@@ -165,7 +165,7 @@ class supply:
         """
 
         # Input vector
-        n = u_actual
+        n = u_actual  # propeller speed (RPM)
 
         # Current velocities
         u_c = self.V_c * math.cos(self.beta_c - eta[5]) # current surge velocity
@@ -177,9 +177,7 @@ class supply:
         # Control forces and moments with propeller saturation
         n_squared = np.zeros(self.dimU)
         for i in range(0, self.dimU):
-            n[i] = sat(
-                n[i], -self.n_max[i], self.n_max[i]
-            )  # saturation, physical limits
+            n[i] = sat(n[i], -self.n_max[i], self.n_max[i])      # saturation
             n_squared[i] = abs(n[i]) * n[i]
 
         tau3 = np.matmul(self.B, n_squared)
@@ -188,7 +186,7 @@ class supply:
         nu3_r = np.array([nu_r[0], nu_r[1], nu_r[5]])
         nu3_dot = np.matmul(self.M3inv, tau3 - np.matmul(self.D3, nu3_r))
 
-        # 6-DOF ship model
+        # 6-DOF ship model and propeller speed dynamics
         nu_dot = np.array([nu3_dot[0], nu3_dot[1], 0, 0, 0, nu3_dot[2]])
         n_dot = (u_control - u_actual) / self.T_n
 
@@ -206,7 +204,7 @@ class supply:
         u_alloc = B' * inv( B * B' ) * tau3
         """
         B_pseudoInv = self.B.T @ np.linalg.inv(self.B @ self.B.T)
-        u_alloc = np.matmul(B_pseudoInv, tau3)
+        u_alloc = np.matmul(B_pseudoInv, tau3)  # squared propeller speed
 
         return u_alloc
 
