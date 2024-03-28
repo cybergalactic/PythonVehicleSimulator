@@ -102,7 +102,7 @@ class supply:
         # Initialize the supply vessel model
         m = 6000.0e3        # mass (kg)
         self.L = 76.2       # length (m)
-        self.T_n = 1.0      # prop. rev. time constant (s)
+        self.T_n = 1.0      # prop. speed time constant (s)
         self.n_max = np.array([250, 250, 250, 250, 
                                160, 160], float) # RPM saturation limits
         self.nu = np.array([0, 0, 0, 0, 0, 0], float) # initial velocity vector
@@ -154,7 +154,7 @@ class supply:
         self.x_d = 0.0  # setpoints
         self.y_d = 0.0
         self.psi_d = 0.0
-        self.wn = np.diag([0.1, 0.1, 0.1])    # PID pole placement
+        self.wn = np.diag([0.1, 0.1, 0.2])    # PID pole placement
         self.zeta = np.diag([1.0, 1.0, 1.0])
 
 
