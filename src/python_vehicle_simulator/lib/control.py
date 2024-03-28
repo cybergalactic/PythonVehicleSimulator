@@ -66,7 +66,7 @@ def DPpolePlacement(
     e[2] = ssa(e[2])
     R = Rzyx(0.0, 0.0, eta3[2])
     tau = (
-        -np.matmul((R.T @ Kp), e)
+        - np.matmul((R.T @ Kp), e)
         - np.matmul((R.T @ Kd @ R), nu3)
         - np.matmul((R.T @ Ki), e_int)
     )
