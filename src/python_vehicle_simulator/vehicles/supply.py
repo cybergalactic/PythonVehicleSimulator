@@ -214,7 +214,7 @@ class supply:
         u = DPcontrol(eta,nu,sampleTime) is a nonlinear PID controller
         for DP based on pole placement:
 
-        tau = -R' Kp (eta-r) - R' Kd R nu - R' Ki int(eta-r)
+        tau = -R' Kp (eta-r) - Kd nu - R' Ki int(eta-r)
         u = B_pseudoinverse * tau
         """
         eta3 = np.array([eta[0], eta[1], eta[5]])
