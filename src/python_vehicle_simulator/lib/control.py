@@ -65,7 +65,7 @@ def DPpolePlacement(
     Ki = (1.0 / 10.0) * wn @ Kp
 
     # DP control law - setpoint regulation
-    e = eta3 - eta_ref
+    e = eta3 - np.array([x_d, y_d, psi_d])
     e[2] = ssa(e[2])
     R = Rzyx(0.0, 0.0, eta3[2])
     tau = (
