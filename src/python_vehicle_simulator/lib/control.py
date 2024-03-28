@@ -35,9 +35,9 @@ def PIDpolePlacement(
 ):
 
     # PID gains based on pole placement
-    Kp = m * wn ** 2 - k
-    Kd = m * 2 * zeta * wn - d
-    Ki = (wn / 10) * Kp
+    Kp = m * wn ** 2.0 - k
+    Kd = m * 2.0 * zeta * wn - d
+    Ki = (wn / 10.0) * Kp
 
     # PID control law
     u = -Kp * e_x - Kd * e_v - Ki * e_int
@@ -57,8 +57,11 @@ def DPpolePlacement(
 ):
 
     # PID gains based on pole placement
-    Kp = wn @ wn @ M3
-    Kd = 2.0 * zeta @ wn @ M3 - D3
+    M3_diag = np.diag(np.diag(M3))
+    D3_diag = np.diag(np.diag(D3))
+    
+    Kp = wn @ wn @ M3_diag
+    Kd = 2.0 * zeta @ wn @ M3_diag - D3_diag
     Ki = (1.0 / 10.0) * wn @ Kp
 
     # DP control law - setpoint regulation
@@ -67,7 +70,7 @@ def DPpolePlacement(
     R = Rzyx(0.0, 0.0, eta3[2])
     tau = (
         - np.matmul((R.T @ Kp), e)
-        - np.matmul((R.T @ Kd @ R), nu3)
+        - np.matmul(Kd, nu3)
         - np.matmul((R.T @ Ki), e_int)
     )
 
