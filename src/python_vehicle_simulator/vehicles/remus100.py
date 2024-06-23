@@ -498,7 +498,7 @@ class remus100:
                 sampleTime 
                 )
             
-        u_control = np.array([ delta_r, delta_s, n], float)
+        u_control = np.array([ delta_r, -delta_s, n], float)
 
         return u_control
 
