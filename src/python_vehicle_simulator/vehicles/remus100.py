@@ -367,7 +367,7 @@ class remus100:
         Y_r = -0.5 * self.rho * U_rh**2 * self.A_r * self.CL_delta_r * delta_r
 
         # Stern-plane heave force
-        Z_s = 0.5 * self.rho * U_rv**2 * self.A_s * self.CL_delta_s * delta_s
+        Z_s = -0.5 * self.rho * U_rv**2 * self.A_s * self.CL_delta_s * delta_s
 
         # Generalized force vector
         tau = np.array([
