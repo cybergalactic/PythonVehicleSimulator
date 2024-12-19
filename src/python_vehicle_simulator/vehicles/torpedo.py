@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-remus100.py:  
+torpedo.py:  
 
-   Class for the Remus 100 cylinder-shaped autonomous underwater vehicle (AUV), 
-   which is controlled using a tail rudder, stern planes and a propeller. The 
+   Class for the a cylinder-shaped autonomous underwater vehicle (AUV), 
+   which is controlled using a fins and a propeller. The 
    length of the AUV is 1.6 m, the cylinder diameter is 19 cm and the 
    mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is obtained 
    when the propeller runs at 1525 rpm in zero currents.
        
-   remus100()                           
+   torpedo()                           
        Step input, stern plane, rudder and propeller revolution     
    
-    remus100('depthHeadingAutopilot',z_d,psi_d,n_d,V_c,beta_c)
+    torpedo('depthHeadingAutopilot',z_d,psi_d,n_d,V_c,beta_c)
         z_d:    desired depth (m), positive downwards
         psi_d:  desired yaw angle (deg)
         n_d:    desired propeller revolution (rpm)
@@ -50,14 +50,15 @@ import math
 import sys
 from python_vehicle_simulator.lib.control import integralSMC
 from python_vehicle_simulator.lib.gnc import crossFlowDrag,forceLiftDrag,Hmtrx,m2c,gvect,ssa
+from python_vehicle_simulator.lib.fin import fin
 
 # Class Vehicle
-class remus100:
+class torpedo:
     """
-    remus100()
+    torpedo()
         Rudder angle, stern plane and propeller revolution step inputs
         
-    remus100('depthHeadingAutopilot',z_d,psi_d,n_d,V_c,beta_c) 
+    torpedo('depthHeadingAutopilot',z_d,psi_d,n_d,V_c,beta_c) 
         Depth and heading autopilots
         
     Inputs:
@@ -66,6 +67,7 @@ class remus100:
         n_d:    desired propeller revolution (rpm)
         V_c:    current speed (m/s)
         beta_c: current direction (deg)
+        fins:   number of fins (equally spaced)
     """
 
     def __init__(
@@ -76,6 +78,7 @@ class remus100:
         r_rpm = 0,
         V_current = 0,
         beta_current = 0,
+        fins = 4,
     ):
 
         # Constants
@@ -111,21 +114,20 @@ class remus100:
         self.diam = 0.19            # cylinder diameter (m)
         
         self.nu = np.array([0, 0, 0, 0, 0, 0], float) # velocity vector
-        self.u_actual = np.array([0, 0, 0], float)    # control input vector
-        
+        self.u_actual = np.zeros(fins+1, float)    # control input vector
+        # TODO make this the length of the fins
         self.controls = [
-            "Tail rudder (deg)",
-            "Stern plane (deg)",
+            "T Tail rudder (deg)",
+            "B Tail rudder (deg)",
+            "Star Stern plane (deg)",
+            "Port Stern plane (deg)",
             "Propeller revolution (rpm)"
             ]
         self.dimU = len(self.controls) 
         
 
         # Actuator dynamics
-        self.deltaMax_r = 15 * self.D2R # max rudder angle (rad)
-        self.deltaMax_s = 15 * self.D2R # max stern plane angle (rad)
         self.nMax = 1525                # max propeller revolution (rpm)    
-        self.T_delta = 0.1              # rudder/stern plane time constant (s)
         self.T_n = 0.1                  # propeller time constant (s)
         
         if r_rpm < 0.0 or r_rpm > self.nMax:
@@ -187,17 +189,15 @@ class remus100:
         self.w_pitch = math.sqrt( self.W * ( self.r_bg[2]-self.r_bb[2] ) / 
             self.M[4][4] )
             
-        S_fin = 0.00665;            # fin area
-        
-        # Tail rudder parameters
-        self.CL_delta_r = 0.5       # rudder lift coefficient
-        self.A_r = 2 * S_fin        # rudder area (m2)
-        self.x_r = -a               # rudder x-position (m)
+        S_fin = 0.00665;            # one fin area 
+        CL_delta_r = 0.5            # rudder lift coefficient
+        CL_delta_s = 0.7            # stern-plane lift coefficient
 
-        # Stern-plane parameters (double)
-        self.CL_delta_s = 0.7       # stern-plane lift coefficient
-        self.A_s = 2 * S_fin        # stern-plane area (m2)
-        self.x_s = -a               # stern-plane z-position (m)
+        portSternFin = fin(S_fin, CL_delta_s, -a, angle=0)       
+        bottomRudderFin = fin(S_fin, CL_delta_r, -a, angle=90)  
+        starSternFin = fin(S_fin, CL_delta_s, -a, angle=180)      
+        topRudderFin = fin(S_fin, CL_delta_r, -a, angle=270)  
+        self.fins = [topRudderFin, bottomRudderFin , starSternFin, portSternFin]
 
         # Low-speed linear damping matrix parameters
         self.T_surge = 20           # time constant in surge (s)
@@ -262,21 +262,10 @@ class remus100:
         U_r = math.sqrt(nu_r[0]**2 + nu_r[1]**2 + nu_r[2]**2)  # relative speed
 
         # Commands and actual control signals
-        delta_r_c = u_control[0]    # commanded tail rudder (rad)
-        delta_s_c = u_control[1]    # commanded stern plane (rad)
-        n_c = u_control[2]          # commanded propeller revolution (rpm)
-        
-        delta_r = u_actual[0]       # actual tail rudder (rad)
-        delta_s = u_actual[1]       # actual stern plane (rad)
-        n = u_actual[2]             # actual propeller revolution (rpm)
+        n_c = u_control[-1]          # commanded propeller revolution (rpm)
+        n = u_actual[-1]             # actual propeller revolution (rpm)
         
         # Amplitude saturation of the control signals
-        if abs(delta_r) >= self.deltaMax_r:
-            delta_r = np.sign(delta_r) * self.deltaMax_r
-            
-        if abs(delta_s) >= self.deltaMax_s:
-            delta_s = np.sign(delta_s) * self.deltaMax_s          
-            
         if abs(n) >= self.nMax:
             n = np.sign(n) * self.nMax       
         
@@ -355,46 +344,29 @@ class remus100:
         # Restoring forces and moments
         g = gvect(self.W,self.B,eta[4],eta[3],self.r_bg,self.r_bb)
         
-        # Horizontal- and vertical-plane relative speed
-        U_rh = math.sqrt( nu_r[0]**2 + nu_r[1]**2 )
-        U_rv = math.sqrt( nu_r[0]**2 + nu_r[2]**2 ) 
-
-        # Rudder and stern-plane drag
-        X_r = -0.5 * self.rho * U_rh**2 * self.A_r * self.CL_delta_r * delta_r**2
-        X_s = -0.5 * self.rho * U_rv**2 * self.A_s * self.CL_delta_s * delta_s**2
-
-        # Rudder sway force 
-        Y_r = -0.5 * self.rho * U_rh**2 * self.A_r * self.CL_delta_r * delta_r
-
-        # Stern-plane heave force
-        Z_s = -0.5 * self.rho * U_rv**2 * self.A_s * self.CL_delta_s * delta_s
+        # Fin torques
+        tau_fins = np.zeros(6,float)
+        for i in range(len(self.fins)):
+            tau_fins += self.fins[i].torque(nu_r)
+            u_actual[i] = self.fins[i].actuate(sampleTime, u_control[i])
 
         # Generalized force vector
-        tau = np.array([
-            (1-t_prop) * X_prop + X_r + X_s, 
-            Y_r, 
-            Z_s,
-            K_prop / 10,   # scaled down by a factor of 10 to match exp. results
-            -1 * self.x_s * Z_s,
-            self.x_r * Y_r
-            ], float)
-    
+        # K_Prop scaled down by a factor of 10 to match exp. results
+        tau_thrust = np.array([(1-t_prop) * X_prop, 0, 0, K_prop / 10, 0, 0], float)
+
+        tau_debug = tau_fins + tau_thrust
         # AUV dynamics
-        tau_sum = tau + tau_liftdrag + tau_crossflow - np.matmul(C+D,nu_r)  - g
+        tau_sum = tau_thrust + tau_fins + tau_liftdrag + tau_crossflow - np.matmul(C+D,nu_r)  - g
         nu_dot = Dnu_c + np.matmul(self.Minv, tau_sum)
             
         # Actuator dynamics
-        delta_r_dot = (delta_r_c - delta_r) / self.T_delta
-        delta_s_dot = (delta_s_c - delta_s) / self.T_delta
         n_dot = (n_c - n) / self.T_n
 
         # Forward Euler integration [k+1]
         nu += sampleTime * nu_dot
-        delta_r += sampleTime * delta_r_dot
-        delta_s += sampleTime * delta_s_dot
         n += sampleTime * n_dot
         
-        u_actual = np.array([ delta_r, delta_s, n ], float)
+        u_actual[-1] = n
 
         return nu, u_actual
 
@@ -410,7 +382,7 @@ class remus100:
                          n          propeller revolution (rpm) ]
         """
         delta_r =  5 * self.D2R      # rudder angle (rad)
-        delta_s = -5 * self.D2R      # stern angle (rad)
+        delta_s = 5 * self.D2R      # stern angle (rad)
         n = 1525                     # propeller revolution (rpm)
         
         if t > 100:
@@ -419,7 +391,7 @@ class remus100:
         if t > 50:
             delta_s = 0     
 
-        u_control = np.array([ delta_r, delta_s, n], float)
+        u_control = np.array([ delta_r, -delta_r, -delta_s, delta_s, n], float)
 
         return u_control
     
@@ -466,8 +438,8 @@ class remus100:
             - self.Ki_theta * self.theta_int - self.K_w * w
 
         # Euler's integration method (k+1)
-        self.z_int     += sampleTime * ( z - self.z_d );
-        self.theta_int += sampleTime * ssa( theta - theta_d );
+        self.z_int     += sampleTime * ( z - self.z_d )
+        self.theta_int += sampleTime * ssa( theta - theta_d )
 
         #######################################################################
         # Heading autopilot (SMC controller)
@@ -498,7 +470,7 @@ class remus100:
                 sampleTime 
                 )
             
-        u_control = np.array([ delta_r, -delta_s, n], float)
+        u_control = np.array([delta_r, -delta_r, delta_s, -delta_s, n], float)
 
         return u_control
 
