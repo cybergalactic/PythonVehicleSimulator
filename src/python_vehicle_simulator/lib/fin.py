@@ -18,9 +18,6 @@ class fin:
     Coordinate system: Right-handed, x-forward, y-starboard, z-down
     '''
     
-
-    ######################### TODO add actuator dynamics
-    # - saturating 
     def __init__(
             self,
             a,
@@ -28,14 +25,12 @@ class fin:
             x,
             c = 0,
             angle = 0,
-            control_subsystem='heading',
             rho = 1026,  # Default density of seawater
     ):
         
         self.area = a  # Fin area (m^2)
         self.CL = CL   # Coefficient of lift (dimensionless)
         self.angle_rad = np.deg2rad(angle)  # Convert angle to radians
-        self.control = control_subsystem
         self.rho = rho  # Fluid density (kg/m^3)
 
         self.fin_actual = 0.0  #Actual position of the fin (rad)
@@ -82,7 +77,7 @@ class fin:
             numpy array: tau vector [Fx, Fy, Fz, Tx, Ty, Tz] (N*m) in body-fixed frame
         """
         
-        ur = self.velocity_in_rotated_plane(Ur[:3])  # Use only linear velocities
+        ur = self.velocity_in_rotated_plane(Ur[:3])  # Calulate relative velocity in plane of the fin
         
         # Calculate lift force magnitude
         f = 0.5 * self.rho * self.area * self.CL * self.fin_actual * ur**2  # N
@@ -92,18 +87,17 @@ class fin:
         fz = -np.cos(self.angle_rad) * f  # N 
 
         F = np.array([0, fy, fz])  # Force vector (N)
-        # print("Force", F)
-        # print("Radius:", self.R)
 
         # Calculate torque using cross product of force and moment arm
         torque = np.cross(self.R, F)  # N*m
         return np.append(F, torque)
     
     def actuate(self, sampleTime, command):
-        
-        delta_dot = (command - self.fin_actual) / self.T_delta
-        self.fin_actual += sampleTime * delta_dot
+        # Actuator dynamics        
+        delta_dot = (command - self.fin_actual) / self.T_delta  
+        self.fin_actual += sampleTime * delta_dot  # Euler integration 
 
+        # Amplitude Saturation
         if abs(self.fin_actual) >= self.deltaMax:
             self.fin_actual = np.sign(self.fin_actual) * self.deltaMax
 

@@ -17,15 +17,18 @@ torpedo.py:
         psi_d:  desired yaw angle (deg)
         n_d:    desired propeller revolution (rpm)
         V_c:    current speed (m/s)
-        beta_c: current direction (deg)                  
+        beta_c: current direction (deg)
+        fins:   number of fins (equally spaced)                  
 
 Methods:
         
     [nu,u_actual] = dynamics(eta,nu,u_actual,u_control,sampleTime ) returns 
         nu[k+1] and u_actual[k+1] using Euler's method. The control input is:
 
-            u_control = [ delta_r   rudder angle (rad)
-                         delta_s    stern plane angle (rad)
+            u_control = [ delta_r_top   rudder angle (rad)
+                         delta_r_bottom rudder angle (rad)
+                         delta_s_star    stern plane angle (rad)
+                         delta_s_port    stern plane angle (rad)
                          n          propeller revolution (rpm) ]
 
     u = depthHeadingAutopilot(eta,nu,sampleTime) 
@@ -115,7 +118,6 @@ class torpedo:
         
         self.nu = np.array([0, 0, 0, 0, 0, 0], float) # velocity vector
         self.u_actual = np.zeros(fins+1, float)    # control input vector
-        # TODO make this the length of the fins
         self.controls = [
             "T Tail rudder (deg)",
             "B Tail rudder (deg)",
@@ -189,14 +191,14 @@ class torpedo:
         self.w_pitch = math.sqrt( self.W * ( self.r_bg[2]-self.r_bb[2] ) / 
             self.M[4][4] )
             
-        S_fin = 0.00665;            # one fin area 
+        S_fin = 0.00665;            # fin area 
         CL_delta_r = 0.5            # rudder lift coefficient
         CL_delta_s = 0.7            # stern-plane lift coefficient
 
-        portSternFin = fin(S_fin, CL_delta_s, -a, angle=0)       
-        bottomRudderFin = fin(S_fin, CL_delta_r, -a, angle=90)  
-        starSternFin = fin(S_fin, CL_delta_s, -a, angle=180)      
-        topRudderFin = fin(S_fin, CL_delta_r, -a, angle=270)  
+        portSternFin = fin(S_fin, CL_delta_s, -a, angle=0, rho=self.rho)       
+        bottomRudderFin = fin(S_fin, CL_delta_r, -a, angle=90, rho=self.rho)  
+        starSternFin = fin(S_fin, CL_delta_s, -a, angle=180, rho=self.rho)      
+        topRudderFin = fin(S_fin, CL_delta_r, -a, angle=270, rho=self.rho)  
         self.fins = [topRudderFin, bottomRudderFin , starSternFin, portSternFin]
 
         # Low-speed linear damping matrix parameters
@@ -344,17 +346,16 @@ class torpedo:
         # Restoring forces and moments
         g = gvect(self.W,self.B,eta[4],eta[3],self.r_bg,self.r_bb)
         
-        # Fin torques
+        # Fin force vector
         tau_fins = np.zeros(6,float)
         for i in range(len(self.fins)):
             tau_fins += self.fins[i].torque(nu_r)
-            u_actual[i] = self.fins[i].actuate(sampleTime, u_control[i])
+            u_actual[i] = self.fins[i].actuate(sampleTime, u_control[i]) # Actuator Dynamics
 
-        # Generalized force vector
+        # Thrust force vector
         # K_Prop scaled down by a factor of 10 to match exp. results
         tau_thrust = np.array([(1-t_prop) * X_prop, 0, 0, K_prop / 10, 0, 0], float)
 
-        tau_debug = tau_fins + tau_thrust
         # AUV dynamics
         tau_sum = tau_thrust + tau_fins + tau_liftdrag + tau_crossflow - np.matmul(C+D,nu_r)  - g
         nu_dot = Dnu_c + np.matmul(self.Minv, tau_sum)
@@ -382,7 +383,7 @@ class torpedo:
                          n          propeller revolution (rpm) ]
         """
         delta_r =  5 * self.D2R      # rudder angle (rad)
-        delta_s = 5 * self.D2R      # stern angle (rad)
+        delta_s = -5 * self.D2R      # stern angle (rad)
         n = 1525                     # propeller revolution (rpm)
         
         if t > 100:
