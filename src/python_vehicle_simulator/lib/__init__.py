@@ -7,4 +7,4 @@ from .plotTimeSeries import *
 from .guidance import *
 from .control import *
 from .models import *
-from .fin import *
+from .actuator import *

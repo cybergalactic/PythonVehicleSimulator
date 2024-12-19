@@ -4,7 +4,7 @@
 torpedo.py:  
 
    Class for the a cylinder-shaped autonomous underwater vehicle (AUV), 
-   which is controlled using a fins and a propeller. The 
+   which is controlled using fins and a propeller. The 
    length of the AUV is 1.6 m, the cylinder diameter is 19 cm and the 
    mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is obtained 
    when the propeller runs at 1525 rpm in zero currents.
@@ -18,7 +18,6 @@ torpedo.py:
         n_d:    desired propeller revolution (rpm)
         V_c:    current speed (m/s)
         beta_c: current direction (deg)
-        fins:   number of fins (equally spaced)                  
 
 Methods:
         
@@ -53,7 +52,7 @@ import math
 import sys
 from python_vehicle_simulator.lib.control import integralSMC
 from python_vehicle_simulator.lib.gnc import crossFlowDrag,forceLiftDrag,Hmtrx,m2c,gvect,ssa
-from python_vehicle_simulator.lib.fin import fin
+from python_vehicle_simulator.lib.actuator import fin, thruster
 
 # Class Vehicle
 class torpedo:
@@ -70,7 +69,6 @@ class torpedo:
         n_d:    desired propeller revolution (rpm)
         V_c:    current speed (m/s)
         beta_c: current direction (deg)
-        fins:   number of fins (equally spaced)
     """
 
     def __init__(
@@ -81,7 +79,6 @@ class torpedo:
         r_rpm = 0,
         V_current = 0,
         beta_current = 0,
-        fins = 4,
     ):
 
         # Constants
@@ -117,7 +114,6 @@ class torpedo:
         self.diam = 0.19            # cylinder diameter (m)
         
         self.nu = np.array([0, 0, 0, 0, 0, 0], float) # velocity vector
-        self.u_actual = np.zeros(fins+1, float)    # control input vector
         self.controls = [
             "T Tail rudder (deg)",
             "B Tail rudder (deg)",
@@ -126,14 +122,12 @@ class torpedo:
             "Propeller revolution (rpm)"
             ]
         self.dimU = len(self.controls) 
+        self.u_actual = np.zeros(self.dimU, float)    # control input vector
         
+        prop = thruster(self.rho)
 
-        # Actuator dynamics
-        self.nMax = 1525                # max propeller revolution (rpm)    
-        self.T_n = 0.1                  # propeller time constant (s)
-        
-        if r_rpm < 0.0 or r_rpm > self.nMax:
-            sys.exit("The RPM value should be in the interval 0-%s", (self.nMax))
+        if r_rpm < 0.0 or r_rpm > prop.nMax:
+            sys.exit("The RPM value should be in the interval 0-%s", (prop.nMax))
         
         if r_z > 100.0 or r_z < 0.0:
             sys.exit('desired depth must be between 0-100 m')    
@@ -195,11 +189,11 @@ class torpedo:
         CL_delta_r = 0.5            # rudder lift coefficient
         CL_delta_s = 0.7            # stern-plane lift coefficient
 
-        portSternFin = fin(S_fin, CL_delta_s, -a, angle=0, rho=self.rho)       
-        bottomRudderFin = fin(S_fin, CL_delta_r, -a, angle=90, rho=self.rho)  
-        starSternFin = fin(S_fin, CL_delta_s, -a, angle=180, rho=self.rho)      
-        topRudderFin = fin(S_fin, CL_delta_r, -a, angle=270, rho=self.rho)  
-        self.fins = [topRudderFin, bottomRudderFin , starSternFin, portSternFin]
+        portSternFin = fin(S_fin, CL_delta_s, -a, c=0.1,angle=0, rho=self.rho)       
+        bottomRudderFin = fin(S_fin, CL_delta_r, -a, c=0.1, angle=90, rho=self.rho)  
+        starSternFin = fin(S_fin, CL_delta_s, -a, c=0.1, angle=180, rho=self.rho)      
+        topRudderFin = fin(S_fin, CL_delta_r, -a, c=0.1, angle=270, rho=self.rho)  
+        self.actuators = [topRudderFin, bottomRudderFin , starSternFin, portSternFin, prop]
 
         # Low-speed linear damping matrix parameters
         self.T_surge = 20           # time constant in surge (s)
@@ -260,55 +254,8 @@ class torpedo:
         Dnu_c = np.array([nu[5]*v_c, -nu[5]*u_c, 0, 0, 0, 0],float) # derivative
         nu_r = nu - nu_c                               # relative velocity        
         alpha = math.atan2( nu_r[2], nu_r[0] )         # angle of attack 
-        U = math.sqrt(nu[0]**2 + nu[1]**2 + nu[2]**2)  # vehicle speed
         U_r = math.sqrt(nu_r[0]**2 + nu_r[1]**2 + nu_r[2]**2)  # relative speed
 
-        # Commands and actual control signals
-        n_c = u_control[-1]          # commanded propeller revolution (rpm)
-        n = u_actual[-1]             # actual propeller revolution (rpm)
-        
-        # Amplitude saturation of the control signals
-        if abs(n) >= self.nMax:
-            n = np.sign(n) * self.nMax       
-        
-        # Propeller coeffs. KT and KQ are computed as a function of advance no.
-        # Ja = Va/(n*D_prop) where Va = (1-w)*U = 0.944 * U; Allen et al. (2000)
-        D_prop = 0.14   # propeller diameter corresponding to 5.5 inches
-        t_prop = 0.1    # thrust deduction number
-        n_rps = n / 60  # propeller revolution (rps) 
-        Va = 0.944 * U  # advance speed (m/s)
-
-        # Ja_max = 0.944 * 2.5 / (0.14 * 1525/60) = 0.6632
-        Ja_max = 0.6632
-        
-        # Single-screw propeller with 3 blades and blade-area ratio = 0.718.
-        # Coffes. are computed using the Matlab MSS toolbox:     
-        # >> [KT_0, KQ_0] = wageningen(0,1,0.718,3)
-        KT_0 = 0.4566
-        KQ_0 = 0.0700
-        # >> [KT_max, KQ_max] = wageningen(0.6632,1,0.718,3) 
-        KT_max = 0.1798
-        KQ_max = 0.0312
-        
-        # Propeller thrust and propeller-induced roll moment
-        # Linear approximations for positive Ja values
-        # KT ~= KT_0 + (KT_max-KT_0)/Ja_max * Ja   
-        # KQ ~= KQ_0 + (KQ_max-KQ_0)/Ja_max * Ja  
-      
-        if n_rps > 0:   # forward thrust
-
-            X_prop = self.rho * pow(D_prop,4) * ( 
-                KT_0 * abs(n_rps) * n_rps + (KT_max-KT_0)/Ja_max * 
-                (Va/D_prop) * abs(n_rps) )        
-            K_prop = self.rho * pow(D_prop,5) * (
-                KQ_0 * abs(n_rps) * n_rps + (KQ_max-KQ_0)/Ja_max * 
-                (Va/D_prop) * abs(n_rps) )           
-            
-        else:    # reverse thrust (braking)
-        
-            X_prop = self.rho * pow(D_prop,4) * KT_0 * abs(n_rps) * n_rps 
-            K_prop = self.rho * pow(D_prop,5) * KQ_0 * abs(n_rps) * n_rps 
-        
         # Rigi-body/added mass Coriolis/centripetal matrices expressed in the CO
         CRB = m2c(self.MRB, nu_r)
         CA  = m2c(self.MA, nu_r)
@@ -346,28 +293,19 @@ class torpedo:
         # Restoring forces and moments
         g = gvect(self.W,self.B,eta[4],eta[3],self.r_bg,self.r_bb)
         
-        # Fin force vector
-        tau_fins = np.zeros(6,float)
-        for i in range(len(self.fins)):
-            tau_fins += self.fins[i].torque(nu_r)
-            u_actual[i] = self.fins[i].actuate(sampleTime, u_control[i]) # Actuator Dynamics
-
-        # Thrust force vector
-        # K_Prop scaled down by a factor of 10 to match exp. results
-        tau_thrust = np.array([(1-t_prop) * X_prop, 0, 0, K_prop / 10, 0, 0], float)
+        # General force vector
+        tau = np.zeros(6,float)
+        for i in range(self.dimU):
+            tau += self.actuators[i].tau(nu_r, nu)
+            u_actual[i] = self.actuators[i].actuate(sampleTime, u_control[i]) # Actuator Dynamics
 
         # AUV dynamics
-        tau_sum = tau_thrust + tau_fins + tau_liftdrag + tau_crossflow - np.matmul(C+D,nu_r)  - g
+        tau_sum = tau + tau_liftdrag + tau_crossflow - np.matmul(C+D,nu_r)  - g
         nu_dot = Dnu_c + np.matmul(self.Minv, tau_sum)
             
-        # Actuator dynamics
-        n_dot = (n_c - n) / self.T_n
 
         # Forward Euler integration [k+1]
         nu += sampleTime * nu_dot
-        n += sampleTime * n_dot
-        
-        u_actual[-1] = n
 
         return nu, u_actual
 
