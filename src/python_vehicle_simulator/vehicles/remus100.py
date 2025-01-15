@@ -126,7 +126,7 @@ class remus100:
         self.deltaMax_s = 15 * self.D2R # max stern plane angle (rad)
         self.nMax = 1525                # max propeller revolution (rpm)    
         self.T_delta = 0.1              # rudder/stern plane time constant (s)
-        self.T_n = 0.1                  # propeller time constant (s)
+        self.T_n = 1.0                  # propeller time constant (s)
         
         if r_rpm < 0.0 or r_rpm > self.nMax:
             sys.exit("The RPM value should be in the interval 0-%s", (self.nMax))
