@@ -32,36 +32,42 @@ browser = 'safari'                  # browser for visualization of animated GIF
 printSimInfo() 
 
 """
-DSRV('depthAutopilot',z_d)                                       
-frigate('headingAutopilot',U,psi_d)
-otter('headingAutopilot',psi_d,V_c,beta_c,tau_X)                  
-ROVzefakkel('headingAutopilot',U,psi_d)                          
-semisub('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)                      
-shipClarke83('headingAutopilot',psi_d,L,B,T,Cb,V_c,beta_c,tau_X)  
-supply('DPcontrol',x_d,y_d,psi_d,V_c,beta_c)      
-tanker('headingAutopilot',psi_d,V_c,beta_c,depth)    
-remus100('depthHeadingAutopilot',z_d,psi_d,V_c,beta_c)             
-torpedo('depthHeadingAutopilot',z_d,psi_d,V_c,beta_c)             
+Vehicle constructors:
+  DSRV('depthAutopilot', z_d)                                        
+  frigate('headingAutopilot', U, psi_d)
+  otter('headingAutopilot', psi_d, V_c, beta_c, tau_X)                  
+  ROVzefakkel('headingAutopilot', U, psi_d)                          
+  semisub('DPcontrol', x_d, y_d, psi_d, V_c, beta_c)                      
+  shipClarke83('headingAutopilot', psi_d, L, B, T, Cb, V_c, beta_c, tau_X)  
+  supply('DPcontrol', x_d, y_d, psi_d, V_c, beta_c)      
+  tanker('headingAutopilot', psi_d, V_c, beta_c, depth)    
+  remus100('depthHeadingAutopilot', z_d, psi_d, V_c, beta_c)             
+  torpedo('depthHeadingAutopilot', z_d, psi_d, V_c, beta_c)             
 
-Call constructors without arguments to test step inputs, e.g. DSRV(), otter(), etc. 
+Call constructors without arguments to test step inputs, e.g. DSRV(), otter(), etc.
 """
 
 no = input("Please enter a vehicle no.: ")   
 
-match no:   #  The match statement requires Python >= 3.10
-    case '1': vehicle = DSRV('depthAutopilot',60.0)
-    case '2': vehicle = frigate('headingAutopilot',10.0,100.0)
-    case '3': vehicle = otter('headingAutopilot',100.0,0.3,-30.0,200.0)  
-    case '4': vehicle = ROVzefakkel('headingAutopilot',3.0,100.0)
-    case '5': vehicle = semisub('DPcontrol',10.0,10.0,40.0,0.5,190.0)
-    case '6': vehicle = shipClarke83('headingAutopilot',-20.0,70,8,6,0.7,0.5,10.0,1e5)
-    case '7': vehicle = supply('DPcontrol',4.0,4.0,50.0,0.5,20.0)
-    case '8': vehicle = tanker('headingAutopilot',-20,0.5,150,20,80)
-    case '9': vehicle = remus100('depthHeadingAutopilot',30,50,1525,0.5,170)
-    case '10': vehicle = torpedo('depthHeadingAutopilot',30,50,1525,0.5,170)
-    case _: print('Error: Not a valid simulator option'), sys.exit()
+vehicleOptions = {
+    '1': lambda: DSRV('depthAutopilot', 60.0),
+    '2': lambda: frigate('headingAutopilot', 10.0, 100.0),
+    '3': lambda: otter('headingAutopilot', 100.0, 0.3, -30.0, 200.0),
+    '4': lambda: ROVzefakkel('headingAutopilot', 3.0, 100.0),
+    '5': lambda: semisub('DPcontrol', 10.0, 10.0, 40.0, 0.5, 190.0),
+    '6': lambda: shipClarke83('headingAutopilot', -20.0, 70, 8, 6, 0.7, 0.5, 10.0, 1e5),
+    '7': lambda: supply('DPcontrol', 4.0, 4.0, 50.0, 0.5, 20.0),
+    '8': lambda: tanker('headingAutopilot', -20, 0.5, 150, 20, 80),
+    '9': lambda: remus100('depthHeadingAutopilot', 30, 50, 1525, 0.5, 170),
+    '10': lambda: torpedo('depthHeadingAutopilot', 30, 50, 1525, 0.5, 170),
+}
 
-printVehicleinfo(vehicle, sampleTime, N)
+if no in vehicleOptions:
+    vehicle = vehicleOptions[no]()
+    printVehicleinfo(vehicle, sampleTime, N)
+else:
+    print('Error: Not a valid simulator option')
+    sys.exit()
 
 ###############################################################################
 # Main simulation loop 
