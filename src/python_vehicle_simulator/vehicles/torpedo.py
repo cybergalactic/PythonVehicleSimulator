@@ -3,11 +3,18 @@
 """
 torpedo.py:  
 
-   Class for the a cylinder-shaped autonomous underwater vehicle (AUV), 
-   which is controlled using fins and a propeller. The 
-   length of the AUV is 1.6 m, the cylinder diameter is 19 cm and the 
-   mass of the vehicle is 31.9 kg. The maximum speed of 2.5 m/s is obtained 
-   when the propeller runs at 1525 rpm in zero currents.
+    Torpedo-shaped vehicle based on the REMUS 100 platform, with modified 
+    fin-based control:
+        
+	- Includes a new finClass that allows fins to be placed at arbitrary 
+        locations on the vehicle.
+	- Computes the force vector based on the local relative water velocity.
+	- Supports actuator dynamics for fin control based on input commands.
+
+    The vehicle is controlled using four fins and a propeller. It has a length 
+    of 1.6 m, a cylindrical body with a 19 cm diameter, and a total mass of 
+    31.9 kg. The maximum speed is 2.5 m/s, achieved when the propeller runs at
+    1525 RPM in still water (no current).
        
    torpedo()                           
        Step input, stern plane, rudder and propeller revolution     
@@ -45,7 +52,7 @@ References:
     T. I. Fossen (2021). Handbook of Marine Craft Hydrodynamics and Motion 
          Control. 2nd. Edition, Wiley. URL: www.fossen.biz/wiley            
 
-Author:     Thor I. Fossen
+Author:     Braden Meyers
 """
 import numpy as np
 import math
@@ -109,7 +116,7 @@ class torpedo:
         
         # Initialize the AUV model 
         self.name = (
-            "Remus 100 cylinder-shaped AUV (see 'remus100.py' for more details)")
+            "Torpedo-shaped vehicle based on the REMUS 100 AUV (see 'torpedo100.py' for more details)")
         self.L = 1.6                # length (m)
         self.diam = 0.19            # cylinder diameter (m)
         
