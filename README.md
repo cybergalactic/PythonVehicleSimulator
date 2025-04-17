@@ -25,7 +25,8 @@ The Python Vehicle Simulator supplements the Matlab MSS (Marine Systems Simulato
         shipClarke83.py         - Ship, linear maneuvering model specified by L, B and T using the Clarke (1983) formulas
         supply.py               - Offshore supply vessel controlled by tunnel thrusters and main propellers, L = 76.2 m
         tanker.py               - Tanker, rudder-controlled ship model including shallow water effects, L = 304.8 m
-        remus100.py             - Cylinder-shaped AUV controlled by a rudder, stern planes and a propeller, L = 1.6 m        
+        remus100.py             - Cylinder-shaped AUV controlled by a rudder, stern planes and a propeller, L = 1.6 m 
+        torpedo.py              - Cylinder-shaped torpedo controlled by a rudder, stern planes and a propeller, L = 1.6 m         
         
 For more information about the mathematical modeling of marine craft and methods for guidance, navigation, and control, please consult:
 
@@ -39,14 +40,25 @@ To run the main program ```main.py``` the following modules must be installed:
     matplotlib      https://matplotlib.org/stable/users/installing.html
     pytest          https://docs.pytest.org
 
-The Python packages are automatically installed by using the command
+These dependencies will be automatically installed using the following command:
 
-```pip install <path>```
+```pip install -e <path>```
 
-where ```<path>``` is the path of the downloaded PythonVehicleSimulator repository. Example:
+where ```<path>``` is the location of the downloaded or cloned PythonVehicleSimulator repository. 
 
-1. Click on the green code tab on GitHub and choose download
-2. This gives you the catalog: PythonVehicleSimulator-master (can be renamed)
-3. ```python3 -m pip install -e /MY_PATH/PythonVehicleSimulator-master```
+####Example:
 
-Note that the -e option is needed to update and change the files. If omitted, you can only run the program.
+1. Go to [https://github.com/cybergalactic/PythonVehicleSimulator](https://github.com/cybergalactic/PythonVehicleSimulator)
+2. Click the green Code button and choose Download ZIP
+3. Extract the ZIP file (you’ll get a folder like PythonVehicleSimulator-main, which you can rename it if desired).
+3. Open a terminal and run:
+```python3 -m pip install -e /MY_PATH/PythonVehicleSimulator-main`` 
+Replace /MY_PATH/ with the actual path on your system.
+
+**Note:** 
+The -e option installs the simulator in editable mode, which allows you to modify the source files and immediately see changes. If you omit -e, you can still run the program, but changes to the code won’t take effect until you reinstall the package.
+
+To run tests:
+
+	pip install pytest
+	pytest
