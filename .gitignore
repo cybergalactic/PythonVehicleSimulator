@@ -110,4 +110,6 @@ GitHub.sublime-settings
 .history
 
 # Animated GIF #
-*3D_animation.gif
+3D_animation.gif
+
+.DS_Store
