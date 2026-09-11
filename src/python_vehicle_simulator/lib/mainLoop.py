@@ -63,9 +63,10 @@ def simulate(N, sampleTime, vehicle):
     DOF = 6                     # degrees of freedom
     t = 0                       # initial simulation time
 
-    # Initial state vectors
-    # Changed z-position (eta[2]) from 0.0 to 10.0 to start underwater
-    eta = np.array([0, 0, 10.0, 0, 0, 0], float)  # position/attitude, user editable
+    # Initial state vectors. Vehicle depth controllers move submerged vehicles
+    # toward their commanded depth; a nonzero global depth destabilizes surface
+    # craft by applying a large hydrostatic restoring force at startup.
+    eta = np.zeros(6, float)                       # position/attitude, user editable
     nu = vehicle.nu                              # velocity, defined by vehicle class
     u_actual = vehicle.u_actual                  # actual inputs, defined by vehicle class
     

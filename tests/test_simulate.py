@@ -7,6 +7,7 @@ The pytest for 'test_simulate.py' can be run in the termonal using:
 """  
 
 import matplotlib.pyplot as plt
+import numpy as np
 from python_vehicle_simulator.lib import *
 import python_vehicle_simulator.vehicles as vehicles
 import pytest
@@ -52,6 +53,15 @@ def test_DSRV():
 def test_otter():
     vehicle = vehicles.otter()
     simulate(N, sampleTime, vehicle)
+
+
+def test_otter_heading_autopilot_remains_finite():
+    vehicle = vehicles.otter('headingAutopilot', 100.0, 0.3, -30.0, 200.0)
+    _, simData = simulate(100, sampleTime, vehicle)
+
+    assert np.all(simData[0, :6] == 0.0)
+    assert np.isfinite(simData).all()
+
 
 def test_ROVzefakkel():
     vehicle = vehicles.ROVzefakkel()
