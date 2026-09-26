@@ -75,6 +75,22 @@ def test_shipClarke83():
     vehicle = vehicles.shipClarke83()
     simulate(N, sampleTime, vehicle)
 
+
+def test_shipClarke83_rudder_increases_surge_resistance():
+    vehicle = vehicles.shipClarke83()
+    eta = np.zeros(6)
+    nu = np.array([3.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+    nu_straight, _ = vehicle.dynamics(
+        eta, nu, np.array([0.0]), np.array([0.0]), sampleTime
+    )
+    delta = np.deg2rad(30.0)
+    nu_turning, _ = vehicle.dynamics(
+        eta, nu, np.array([delta]), np.array([delta]), sampleTime
+    )
+
+    assert nu_turning[0] < nu_straight[0]
+
 def test_supply():
     vehicle = vehicles.supply()
     simulate(N, sampleTime, vehicle)
