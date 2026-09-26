@@ -184,7 +184,7 @@ class shipClarke83:
         delta_R = -delta  # physical rudder angle (rad)
         T = self.tau_X  # thrust (N)
         t_deduction = 0.1  # thrust deduction number
-        tau1 = (1 - t_deduction) * T - Xdd * math.sin(delta_R) ** 2
+        tau1 = (1 - t_deduction) * T + Xdd * math.sin(delta_R) ** 2
         tau2 = -Yd * math.sin(2 * delta_R)
         tau6 = -Nd * math.sin(2 * delta_R)
         tau = np.array([tau1, tau2, tau6], float)
